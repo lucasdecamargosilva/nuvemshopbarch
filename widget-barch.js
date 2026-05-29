@@ -313,7 +313,7 @@
 
         /* ── Section label ── */
         .q-prod-thumbs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
-        .q-prod-thumb { width: 64px; height: 64px; border-radius: 12px; overflow: hidden; border: 2px solid var(--c-line); cursor: pointer; transition: 0.2s; flex-shrink: 0; background: var(--c-surface); }
+        .q-prod-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 2px solid var(--c-line); cursor: pointer; transition: 0.2s; flex-shrink: 0; background: var(--c-surface); }
         .q-prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .q-prod-thumb:hover { border-color: var(--c-ink); }
         .q-prod-thumb.q-selected { border-color: var(--c-ink); box-shadow: 0 0 0 2px var(--c-ink); }
