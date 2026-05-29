@@ -312,8 +312,21 @@
         }
 
         /* ── Section label ── */
-        .q-prod-thumbs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; width: 100%; min-width: 0; max-width: 100%; }
+        .q-thumbs-carousel { position: relative; margin-bottom: 22px; }
+        .q-prod-thumbs { display: flex; gap: 10px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; width: 100%; min-width: 0; max-width: 100%; scroll-behavior: smooth; }
         .q-prod-thumbs::-webkit-scrollbar { display: none; }
+        .q-thumb-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%); z-index: 5;
+            width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+            background: var(--c-ink); color: #fff; font-size: 20px; line-height: 1;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25); padding: 0; padding-bottom: 2px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .q-thumb-arrow:hover { opacity: 0.85; }
+        .q-thumb-arrow:active { transform: translateY(-50%) scale(0.92); }
+        .q-thumb-arrow-left { left: -6px; }
+        .q-thumb-arrow-right { right: -6px; }
         .q-prod-thumb { width: 110px; height: 110px; border-radius: 12px; overflow: hidden; border: 2px solid var(--c-line); cursor: pointer; transition: 0.2s; flex: 0 0 auto; background: var(--c-surface); }
         .q-prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .q-prod-thumb:hover { border-color: var(--c-ink); }
@@ -654,7 +667,11 @@
                         <!-- Seletor de imagem do produto -->
                         <div id="q-photo-selector-group" style="display:none;">
                             <p class="q-section-label">Escolha o modelo</p>
-                            <div id="q-prod-thumbs" class="q-prod-thumbs"></div>
+                            <div class="q-thumbs-carousel">
+                                <button type="button" class="q-thumb-arrow q-thumb-arrow-left" aria-label="Anterior" onclick="document.getElementById('q-prod-thumbs').scrollBy({left:-240,behavior:'smooth'})">&#8249;</button>
+                                <div id="q-prod-thumbs" class="q-prod-thumbs"></div>
+                                <button type="button" class="q-thumb-arrow q-thumb-arrow-right" aria-label="Pr&#243;ximo" onclick="document.getElementById('q-prod-thumbs').scrollBy({left:240,behavior:'smooth'})">&#8250;</button>
+                            </div>
                         </div>
 
                         <!-- Photo section -->
