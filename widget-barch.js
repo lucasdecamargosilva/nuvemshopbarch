@@ -949,23 +949,7 @@
         }
 
         function extractImages() {
-            // Prioridade: imagem da variação selecionada (Nuvemshop marca com .js-active-variant)
-            const activeVariantImgs = Array.from(document.querySelectorAll('.js-product-slide-img.js-active-variant'));
-            if (activeVariantImgs.length) {
-                const variantUrls = [];
-                activeVariantImgs.forEach(img => {
-                    let src = img.getAttribute('data-srcset') || img.dataset?.srcset || img.getAttribute('data-src') || img.src;
-                    if (!src) return;
-                    src = src.split(',')[0].trim().split(' ')[0];
-                    if (src.startsWith('//')) src = 'https:' + src;
-                    if (!src || src.includes('data:image') || src.includes('empty-placeholder')) return;
-                    const up = upgradeImgUrl(src);
-                    if (!variantUrls.includes(up)) variantUrls.push(up);
-                });
-                if (variantUrls.length) return variantUrls.slice(0, 4);
-            }
-
-            const containersSelectors = '.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
+            const containersSelectors ='.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
             let imgEls = [];
             possibleContainers.forEach(c => {
@@ -1014,11 +998,28 @@
         }
 
         function populateImageSelector() {
-            // Seletor desativado: usa direto a imagem da variação selecionada
             const imgs = extractImages();
-            selectedProductImgUrl = imgs[0] || '';
             const group = document.getElementById('q-photo-selector-group');
-            if (group) group.style.display = 'none';
+            const thumbs = document.getElementById('q-prod-thumbs');
+            selectedProductImgUrl = imgs[0] || '';
+            if (!group || !thumbs) return;
+            if (imgs.length <= 1) { group.style.display = 'none'; return; }
+            thumbs.innerHTML = '';
+            imgs.forEach((src, i) => {
+                const div = document.createElement('div');
+                div.className = 'q-prod-thumb' + (i === 0 ? ' q-selected' : '');
+                const thumbImg = document.createElement('img');
+                thumbImg.src = src;
+                thumbImg.alt = 'Modelo ' + (i + 1);
+                div.appendChild(thumbImg);
+                div.onclick = () => {
+                    document.querySelectorAll('.q-prod-thumb').forEach(t => t.classList.remove('q-selected'));
+                    div.classList.add('q-selected');
+                    selectedProductImgUrl = src;
+                };
+                thumbs.appendChild(div);
+            });
+            group.style.display = 'block';
         }
 
         function openModal() {
