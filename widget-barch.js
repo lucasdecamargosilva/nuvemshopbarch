@@ -312,7 +312,7 @@
         }
 
         /* ── Section label ── */
-        .q-prod-thumbs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+        .q-prod-thumbs { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; width: 100%; min-width: 0; max-width: 100%; }
         .q-prod-thumbs::-webkit-scrollbar { display: none; }
         .q-prod-thumb { width: 110px; height: 110px; border-radius: 12px; overflow: hidden; border: 2px solid var(--c-line); cursor: pointer; transition: 0.2s; flex: 0 0 auto; background: var(--c-surface); }
         .q-prod-thumb img { width: 100%; height: 100%; object-fit: cover; }
