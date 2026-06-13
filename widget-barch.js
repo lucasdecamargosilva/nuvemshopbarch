@@ -743,7 +743,7 @@
 
                     <!-- Resultado -->
                     <div id="q-step-result">
-                        <span class="q-res-title">Veja como ficou em voc&ecirc; &#x2728;</span>
+                        <span class="q-res-title">Veja como ficou em voc&ecirc;</span>
                         <div id="q-result-img-col">
                             <img id="q-final-view-img">
                         </div>
