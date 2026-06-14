@@ -549,6 +549,22 @@
         }
         .q-res-mobile-only { margin: 0; }
 
+        /* CTA de compra na tela de resultado */
+        .q-btn-buy-now {
+            background: var(--c-ink); color: #fff; border: 1px solid var(--c-ink);
+            width: 100%; padding: 17px 18px; font-family: var(--font-body);
+            font-weight: 700; font-size: 15px; letter-spacing: .2px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            border-radius: 3px; transition: .2s; line-height: 1.2;
+        }
+        .q-btn-buy-now:hover { opacity: .88; }
+        .q-btn-buy-now .q-buy-price { font-weight: 800; white-space: nowrap; }
+        .q-buy-trust {
+            text-align: center; font-size: 11px; color: var(--c-muted);
+            margin-top: 2px; letter-spacing: .2px;
+        }
+
+
         /* ── Related products ── */
         #q-related-products { padding: 0 28px 28px; }
         #q-related-products h4 {
@@ -749,10 +765,10 @@
                         </div>
                         <div id="q-result-actions-col">
                             <div id="q-provas-restantes-result" class="q-provas-msg" style="text-align:center;margin-bottom:8px;"></div>
-                            <button class="q-btn-outline" id="q-btn-back">Voltar ao Produto</button>
-                            <button class="q-btn-black q-res-mobile-only" id="q-retry-btn" style="display:flex;align-items:center;justify-content:center;gap:8px;">
-                                <i class="ph ph-camera"></i> Tentar outra foto
+                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">
+                                <span id="q-buy-label">Comprar Agora</span> <span class="q-buy-price" id="q-buy-price"></span>
                             </button>
+                            <div class="q-buy-trust" id="q-buy-trust" style="display:none;">&#128274; Compra segura &middot; troca f&aacute;cil em 30 dias</div>
                             <div id="q-related-products" style="display:none;">
                                 <h4>Veja tamb&eacute;m</h4>
                                 <div class="q-related-grid" id="q-related-grid"></div>
@@ -778,6 +794,90 @@
 
 
     // ─── INIT ─────────────────────────────────────────────────────────────────────
+
+
+    // ─── CTA DE COMPRA NO RESULTADO ───────────────────────────────────────────────
+
+    // Caminho do checkout da Nuvemshop. Se na loja o checkout direto não abrir,
+    // troque para '/comprar/' por '/carrinho' (1 linha) — é o único ponto a validar ao vivo.
+    var Q_CHECKOUT_URL = '/comprar/';
+
+    function getMainPrice() {
+        // 1) preço exibido na página (vários temas Nuvemshop)
+        var sel = '.js-price-display, [data-product-price], .product__price .price, .js-product-price, .price-display';
+        var el = document.querySelector(sel);
+        if (el) {
+            var t = (el.getAttribute('data-product-price') || el.textContent || '').trim();
+            if (t && /\d/.test(t)) {
+                // normaliza "R$ 289,00" / "28900" -> "R$ 289,00"
+                if (/^\d+$/.test(t)) { var n = (parseInt(t,10)/100).toFixed(2).replace('.',','); return 'R$ ' + n; }
+                return t.replace(/\s+/g,' ');
+            }
+        }
+        // 2) fallback: data-variants do produto principal (mesmo formato dos "Veja também")
+        var dv = document.querySelector('[data-variants]');
+        if (dv) {
+            try { var v = JSON.parse(dv.getAttribute('data-variants'))[0]; if (v && v.price_short) return v.price_short; } catch (e) {}
+        }
+        return '';
+    }
+
+    function findStoreBuyBtn() {
+        return document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"], button[type="submit"].js-addtocart');
+    }
+
+    // Acha o form de produto real (o que tem o input add_to_cart = product_id)
+    function getProductForm() {
+        var f = document.getElementById('product_form');
+        if (f && f.querySelector('input[name="add_to_cart"]')) return f;
+        var inp = document.querySelector('input[name="add_to_cart"]');
+        if (inp && inp.closest('form')) return inp.closest('form');
+        return document.querySelector('form.js-product-form');
+    }
+
+    // Compra de verdade: submete uma CÓPIA do form do produto (POST real).
+    // A Nuvemshop só adiciona ao carrinho via POST — o GET antigo abria o
+    // carrinho vazio. O clone não tem o AJAX do tema, então faz POST nativo:
+    // servidor adiciona o item e redireciona pro carrinho JÁ com o produto.
+    function buyNow() {
+        var src = getProductForm();
+        if (src) {
+            var clone = document.createElement('form');
+            clone.method = 'post';
+            clone.action = src.getAttribute('action') || '/comprar/';
+            clone.style.display = 'none';
+            src.querySelectorAll('input, select, textarea').forEach(function (el) {
+                if (!el.name) return;
+                if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) return;
+                var h = document.createElement('input');
+                h.type = 'hidden'; h.name = el.name; h.value = el.value;
+                clone.appendChild(h);
+            });
+            if (!clone.querySelector('[name="quantity"]')) {
+                var q = document.createElement('input');
+                q.type = 'hidden'; q.name = 'quantity'; q.value = '1';
+                clone.appendChild(q);
+            }
+            document.body.appendChild(clone);
+            clone.submit();
+            return;
+        }
+        // Fallback: botão nativo da loja
+        var sb = findStoreBuyBtn();
+        if (sb) { try { sb.click(); } catch (e) {} }
+    }
+
+    function populateBuyCta() {
+        var btn = document.getElementById('q-btn-buy-now');
+        var trust = document.getElementById('q-buy-trust');
+        if (!btn) return;
+        var price = getMainPrice();
+        var priceEl = document.getElementById('q-buy-price');
+        if (priceEl) priceEl.textContent = price ? ('— ' + price) : '';
+        btn.style.display = 'flex';
+        if (trust) trust.style.display = 'block';
+        btn.onclick = buyNow;
+    }
 
 
     function init() {
@@ -1070,7 +1170,7 @@
 
 
         closeBtn.onclick = () => closeModal();
-        backBtn.onclick = () => closeModal();
+        if (backBtn) backBtn.onclick = () => closeModal();
 
 
         modal.addEventListener('click', (e) => {
@@ -1078,7 +1178,7 @@
         });
 
 
-        retryBtn.onclick = () => {
+        if (retryBtn) retryBtn.onclick = () => {
             document.getElementById('q-step-result').style.display = 'none';
             photoStep.style.display = 'flex';
             document.querySelector('.q-card-ia').classList.remove('is-result');
@@ -1497,6 +1597,7 @@ const fd = new FormData();
                         document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
                         document.querySelector('.q-card-ia').classList.add('is-result');
                         document.getElementById('q-step-result').style.display = 'flex';
+                        populateBuyCta();
                         loadRelatedProducts();
                         if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
                     } else if (res.status === 401 || res.status === 403) {
