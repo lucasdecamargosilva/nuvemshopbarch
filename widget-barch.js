@@ -840,6 +840,12 @@
     // carrinho vazio. O clone não tem o AJAX do tema, então faz POST nativo:
     // servidor adiciona o item e redireciona pro carrinho JÁ com o produto.
     function buyNow() {
+        // Tracking: registra o clique em "Comprar Agora" (marca carrinho_adicionado na prova)
+        try {
+            var _tp = (document.getElementById('q-phone') || {}).value || '';
+            var _td = (document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '';
+            fetch('https://n8n.segredosdodrop.com/webhook/pl-provador-buy-click', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: _tp, origin: location.origin, produto: _td }) }).catch(function () {});
+        } catch (e) {}
         var src = getProductForm();
         if (src) {
             var clone = document.createElement('form');
