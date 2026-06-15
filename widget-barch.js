@@ -543,7 +543,7 @@
         #q-result-img-col img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
         #q-result-actions-col {
-            display: flex; flex-direction: column; gap: 13px;
+            display: flex; flex-direction: column; gap: 8px;
             padding: 20px 28px 0;
         }
         .q-res-mobile-only { margin: 0; }
@@ -567,7 +567,7 @@
         /* Selos de segurança */
         .q-seals {
             display: flex; justify-content: flex-start; gap: 30px;
-            margin: 18px 0; padding: 15px 0;
+            margin: 8px 0; padding: 12px 0;
             border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line);
         }
         .q-seal { display: flex; align-items: center; gap: 9px; }
