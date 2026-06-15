@@ -551,19 +551,19 @@
         /* CTA de compra na tela de resultado */
         .q-result-prodinfo { text-align: left; margin-bottom: 6px; }
         .q-result-prodname {
-            font-family: var(--font-body); font-size: 17px; font-weight: 700;
+            font-family: var(--font-body); font-size: 20px; font-weight: 700;
             color: var(--c-ink); line-height: 1.25; margin-bottom: 6px;
         }
         .q-result-prodprice {
-            font-family: var(--font-display); font-size: 24px; letter-spacing: .5px; font-weight: 700;
+            font-family: var(--font-display); font-size: 28px; letter-spacing: .5px; font-weight: 700;
             color: var(--c-ink); line-height: 1;
         }
         .q-result-installment {
-            font-family: var(--font-body); font-size: 11px; color: var(--c-muted);
+            font-family: var(--font-body); font-size: 12px; color: var(--c-muted);
             margin-top: 4px; letter-spacing: .2px;
         }
         .q-scarcity {
-            margin-top: 12px; font-family: var(--font-body); font-size: 12px; font-weight: 700;
+            margin-top: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 700;
             color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
             display: flex; align-items: center; justify-content: flex-start; gap: 6px;
         }
@@ -577,7 +577,7 @@
         .q-seal { display: flex; align-items: center; gap: 9px; }
         .q-seal > i { font-size: 24px; color: var(--c-ink); flex-shrink: 0; }
         .q-seal span {
-            font-family: var(--font-body); font-size: 11px; font-weight: 700;
+            font-family: var(--font-body); font-size: 12px; font-weight: 700;
             text-transform: uppercase; letter-spacing: .6px; line-height: 1.25;
             color: var(--c-ink); text-align: left;
         }
