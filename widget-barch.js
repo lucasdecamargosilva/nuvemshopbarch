@@ -543,7 +543,7 @@
         #q-result-img-col img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
         #q-result-actions-col {
-            display: flex; flex-direction: column; gap: 10px;
+            display: flex; flex-direction: column; gap: 18px;
             padding: 20px 28px 0;
         }
         .q-res-mobile-only { margin: 0; }
@@ -578,11 +578,11 @@
             color: var(--c-ink); text-align: left;
         }
         .q-fakebuy {
-            position: fixed; left: 18px; bottom: 18px; z-index: 2147483000;
+            position: fixed; right: 16px; top: 16px; z-index: 2147483000;
             background: var(--c-bg, #fff); color: var(--c-ink); border: 1px solid var(--c-line); border-radius: 10px;
             box-shadow: 0 8px 28px -6px rgba(0,0,0,.28); padding: 11px 14px;
             display: flex; align-items: center; gap: 10px; max-width: 290px;
-            font-family: var(--font-body); opacity: 0; transform: translateY(14px);
+            font-family: var(--font-body); opacity: 0; transform: translateY(-14px);
             pointer-events: none; transition: opacity .35s ease, transform .35s ease;
         }
         .q-fakebuy.show { opacity: 1; transform: translateY(0); }
@@ -799,6 +799,7 @@
 
                     <!-- Resultado -->
                     <div id="q-step-result">
+                        <span class="q-res-title">Veja como ficou em voc&ecirc;</span>
                         <div id="q-result-img-col">
                             <img id="q-final-view-img">
                         </div>
@@ -809,11 +810,11 @@
                                 <div class="q-result-prodprice" id="q-result-prodprice"></div>
                                 <div class="q-scarcity" id="q-scarcity" style="display:none;"><i class="ph-bold ph-fire"></i> APENAS <strong id="q-scarcity-n"></strong>&nbsp;UNIDADES RESTANTES</div>
                             </div>
-                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">Comprar Agora</button>
                             <div class="q-seals" id="q-seals" style="display:none;">
                                 <div class="q-seal"><i class="ph-fill ph-shield-check"></i><span>Compra<br>Segura</span></div>
                                 <div class="q-seal"><i class="ph-fill ph-lock-key"></i><span>Pagamento<br>Seguro</span></div>
                             </div>
+                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">Comprar Agora</button>
                             <div id="q-related-products" style="display:none;">
                                 <h4>Veja tamb&eacute;m</h4>
                                 <div class="q-related-grid" id="q-related-grid"></div>
