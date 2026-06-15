@@ -529,7 +529,7 @@
         .q-res-title {
             display: block;
             font-family: var(--font-display); font-size: 18px;
-            letter-spacing: 3px; text-transform: none;
+            letter-spacing: 3px; text-transform: uppercase;
             color: var(--c-ink); padding: 20px 28px 16px; margin: 0;
             border-bottom: 1px solid var(--c-line);
             text-align: center;
@@ -537,7 +537,7 @@
         .q-res-subtitle, .q-res-note { display: none; }
 
         #q-result-img-col {
-            width: 100%; max-height: 72vh; background: var(--c-surface);
+            width: 100%; max-height: 56vh; background: var(--c-surface);
             overflow: hidden; display: flex; align-items: center; justify-content: center;
         }
         #q-result-img-col img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
@@ -549,6 +549,48 @@
         .q-res-mobile-only { margin: 0; }
 
         /* CTA de compra na tela de resultado */
+        .q-result-prodinfo { text-align: left; margin-bottom: 6px; }
+        .q-result-prodname {
+            font-family: var(--font-body); font-size: 16px; font-weight: 700;
+            color: var(--c-ink); line-height: 1.25; margin-bottom: 6px;
+        }
+        .q-result-prodprice {
+            font-family: var(--font-display); font-size: 22px; letter-spacing: .5px; font-weight: 700;
+            color: var(--c-ink); line-height: 1;
+        }
+        .q-scarcity {
+            margin-top: 12px; font-family: var(--font-body); font-size: 11px; font-weight: 700;
+            color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: flex-start; gap: 6px;
+        }
+        .q-scarcity i { font-size: 15px; }
+        /* Selos de segurança */
+        .q-seals {
+            display: flex; justify-content: flex-start; gap: 30px;
+            margin: 18px 0; padding: 15px 0;
+            border-top: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line);
+        }
+        .q-seal { display: flex; align-items: center; gap: 9px; }
+        .q-seal > i { font-size: 24px; color: var(--c-ink); flex-shrink: 0; }
+        .q-seal span {
+            font-family: var(--font-body); font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .6px; line-height: 1.25;
+            color: var(--c-ink); text-align: left;
+        }
+        .q-fakebuy {
+            position: fixed; left: 18px; bottom: 18px; z-index: 2147483000;
+            background: var(--c-bg, #fff); color: var(--c-ink); border: 1px solid var(--c-line); border-radius: 10px;
+            box-shadow: 0 8px 28px -6px rgba(0,0,0,.28); padding: 11px 14px;
+            display: flex; align-items: center; gap: 10px; max-width: 290px;
+            font-family: var(--font-body); opacity: 0; transform: translateY(14px);
+            pointer-events: none; transition: opacity .35s ease, transform .35s ease;
+        }
+        .q-fakebuy.show { opacity: 1; transform: translateY(0); }
+        .q-fakebuy > i { font-size: 22px; color: var(--c-ink); flex-shrink: 0; }
+        .q-fakebuy strong { font-size: 12.5px; font-weight: 700; }
+        .q-fakebuy > div { display: flex; flex-direction: column; line-height: 1.35; }
+        .q-fakebuy span { font-size: 10.5px; color: var(--c-muted); }
+        @media (max-width:560px){ .q-fakebuy{ left:12px; right:12px; bottom:12px; max-width:none; } }
         .q-btn-buy-now {
             background: var(--c-ink); color: #fff; border: 1px solid var(--c-ink);
             width: 100%; padding: 17px 18px; font-family: var(--font-body);
@@ -562,7 +604,6 @@
             text-align: center; font-size: 11px; color: var(--c-muted);
             margin-top: 2px; letter-spacing: .2px;
         }
-
 
         /* ── Related products ── */
         #q-related-products { padding: 0 28px 28px; }
@@ -758,16 +799,21 @@
 
                     <!-- Resultado -->
                     <div id="q-step-result">
-                        <span class="q-res-title">Veja como ficou em voc&ecirc;</span>
                         <div id="q-result-img-col">
                             <img id="q-final-view-img">
                         </div>
                         <div id="q-result-actions-col">
-                            <div id="q-provas-restantes-result" class="q-provas-msg" style="text-align:center;margin-bottom:8px;"></div>
-                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">
-                                <span id="q-buy-label">Comprar Agora</span> <span class="q-buy-price" id="q-buy-price"></span>
-                            </button>
-                            <div class="q-buy-trust" id="q-buy-trust" style="display:none;">&#128274; Compra segura &middot; troca f&aacute;cil em 30 dias</div>
+                            <div class="q-fakebuy" id="q-fakebuy"></div>
+                            <div class="q-result-prodinfo" id="q-result-prodinfo" style="display:none;">
+                                <div class="q-result-prodname" id="q-result-prodname"></div>
+                                <div class="q-result-prodprice" id="q-result-prodprice"></div>
+                                <div class="q-scarcity" id="q-scarcity" style="display:none;"><i class="ph-bold ph-fire"></i> APENAS <strong id="q-scarcity-n"></strong>&nbsp;UNIDADES RESTANTES</div>
+                            </div>
+                            <div class="q-seals" id="q-seals" style="display:none;">
+                                <div class="q-seal"><i class="ph-fill ph-shield-check"></i><span>Compra<br>Segura</span></div>
+                                <div class="q-seal"><i class="ph-fill ph-lock-key"></i><span>Pagamento<br>Seguro</span></div>
+                            </div>
+                            <button class="q-btn-buy-now" id="q-btn-buy-now" style="display:none;">Comprar Agora</button>
                             <div id="q-related-products" style="display:none;">
                                 <h4>Veja tamb&eacute;m</h4>
                                 <div class="q-related-grid" id="q-related-grid"></div>
@@ -872,17 +918,63 @@
         if (sb) { try { sb.click(); } catch (e) {} }
     }
 
+    // Escassez — número estável por produto (não muda a cada refresh)
+    function scarcityCount(name) {
+        var h = 5381, s = String(name || '');
+        for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
+        return 2 + (h % 6); // 2..7
+    }
+    // Notificações de compra (prova social)
+    var Q_FAKE_NAMES = ['Ana C.','Carlos M.','Mariana S.','João P.','Beatriz R.','Pedro A.','Juliana F.','Lucas T.','Fernanda L.','Rafael O.','Camila N.','Bruno G.','Larissa D.','Gabriel V.','Patrícia H.','Thiago B.','Aline M.','Rodrigo S.','Vanessa P.','Felipe C.','Letícia M.','Marcos A.'];
+    var Q_FAKE_WHEN = ['agora mesmo','há 1 minuto','há 2 minutos','há 4 minutos','há 6 minutos','há 9 minutos','há 12 minutos'];
+    var _fakeBuyTimer = null;
+    function _showFakeBuy() {
+        var step = document.getElementById('q-step-result');
+        var el = document.getElementById('q-fakebuy');
+        if (!el || !step || step.style.display === 'none') return;
+        var nm = Q_FAKE_NAMES[Math.floor(Math.random() * Q_FAKE_NAMES.length)];
+        var wh = Q_FAKE_WHEN[Math.floor(Math.random() * Q_FAKE_WHEN.length)];
+        el.innerHTML = '<i class="ph-fill ph-shopping-bag"></i><div><span style="font-size:12.5px;color:var(--c-ink);"><strong>' + nm + '</strong> comprou este produto</span><span>' + wh + ' &middot; compra verificada</span></div>';
+        el.classList.add('show');
+        clearTimeout(el._hideT);
+        el._hideT = setTimeout(function () { el.classList.remove('show'); }, 4500);
+    }
+    function startFakeBuy() {
+        stopFakeBuy();
+        setTimeout(_showFakeBuy, 3000);
+        _fakeBuyTimer = setInterval(_showFakeBuy, 12000);
+    }
+    function stopFakeBuy() {
+        if (_fakeBuyTimer) { clearInterval(_fakeBuyTimer); _fakeBuyTimer = null; }
+        var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
+    }
+
     function populateBuyCta() {
         var btn = document.getElementById('q-btn-buy-now');
-        var trust = document.getElementById('q-buy-trust');
+        var trust = document.getElementById('q-seals');
         if (!btn) return;
+        // Nome + valor do produto acima do botão
         var price = getMainPrice();
-        var priceEl = document.getElementById('q-buy-price');
-        if (priceEl) priceEl.textContent = price ? ('— ' + price) : '';
+        var prodName = (document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '';
+        var info = document.getElementById('q-result-prodinfo');
+        var nameEl = document.getElementById('q-result-prodname');
+        var priceEl = document.getElementById('q-result-prodprice');
+        if (nameEl) nameEl.textContent = (prodName || '').trim();
+        if (priceEl) priceEl.textContent = price || '';
+        if (info && ((prodName || '').trim() || price)) info.style.display = 'block';
+        // Escassez
+        var sc = document.getElementById('q-scarcity');
+        var scn = document.getElementById('q-scarcity-n');
+        if (sc && scn && (prodName || '').trim()) { scn.textContent = scarcityCount(prodName); sc.style.display = 'flex'; }
+        // Notificações de compra
+        startFakeBuy();
         btn.style.display = 'flex';
-        if (trust) trust.style.display = 'block';
+        if (trust) trust.style.display = 'flex';
         btn.onclick = buyNow;
     }
+
+
+    // ─── INIT ─────────────────────────────────────────────────────────────────────
 
 
     function init() {
@@ -1169,6 +1261,7 @@
         function closeModal() {
             modal.style.display = 'none';
             unlockBodyScroll();
+            try { stopFakeBuy(); } catch (e) {}
         }
 
 
@@ -1301,7 +1394,7 @@
                     const _txt = restantes + (restantes === 1 ? ' prova restante hoje' : ' provas restantes hoje');
                     _els.forEach(el => { el.textContent = _txt; el.classList.remove('is-warn'); });
                 } else {
-                    _els.forEach(el => { el.textContent = 'Limite de 3 provas atingido — pague R$1 via PIX para mais uma.'; el.classList.add('is-warn'); });
+                    _els.forEach(el => { el.textContent = ''; el.classList.remove('is-warn'); });   // limite: nao avisa na tela inicial; PIX so ao enviar a foto
                 }
             } catch(_) { _els.forEach(el => { el.textContent = ''; el.classList.remove('is-warn'); }); }
         }
@@ -1609,7 +1702,6 @@ const fd = new FormData();
                         document.querySelector('.q-card-ia').classList.add('is-result');
                         document.getElementById('q-step-result').style.display = 'flex';
                         populateBuyCta();
-                        loadRelatedProducts();
                         if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
                     } else if (res.status === 401 || res.status === 403) {
                         document.getElementById('q-loading-box').style.display = 'none';
