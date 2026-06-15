@@ -153,7 +153,6 @@
 
     const styles = `
         /* ── Fontes ── */
-        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap');
 
         :root {
             --c-bg: #ffffff;
@@ -163,8 +162,8 @@
             --c-line: #e3d6cb;
             --c-accent: #8a6d5b;
             --c-danger: #cc3333;
-            --font-display: 'Be Vietnam Pro', sans-serif;
-            --font-body: 'Be Vietnam Pro', sans-serif;
+            --font-display: inherit;
+            --font-body: inherit;
         }
 
         /* ── Trigger (selo sobre foto) ── */
@@ -894,10 +893,6 @@
         }
 
         // Fontes (async, não bloqueia render)
-        const fontLink = document.createElement('link');
-        fontLink.href = 'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap';
-        fontLink.rel = 'stylesheet';
-        document.head.appendChild(fontLink);
 
         // Phosphor Icons — carregado lazily na primeira abertura do modal
         // (não carrega na init para não impactar o tempo de carregamento da página)
@@ -909,6 +904,16 @@
         const modalContainer = document.createElement('div');
         modalContainer.innerHTML = html;
         document.body.appendChild(modalContainer);
+
+        // Usa a MESMA FONTE da loja no provador
+        try {
+            var _bodyF = getComputedStyle(document.body).fontFamily;
+            var _h = document.querySelector('h1.product__title,.product-single__title,h1,h2');
+            var _headF = _h ? getComputedStyle(_h).fontFamily : _bodyF;
+            var _root = document.documentElement;
+            if (_bodyF) _root.style.setProperty('--font-body', _bodyF);
+            if (_headF) _root.style.setProperty('--font-display', _headF);
+        } catch (e) {}
 
 
         // ── Selo do provador em TODAS as fotos do produto ──
