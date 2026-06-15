@@ -551,15 +551,19 @@
         /* CTA de compra na tela de resultado */
         .q-result-prodinfo { text-align: left; margin-bottom: 6px; }
         .q-result-prodname {
-            font-family: var(--font-body); font-size: 16px; font-weight: 700;
+            font-family: var(--font-body); font-size: 17px; font-weight: 700;
             color: var(--c-ink); line-height: 1.25; margin-bottom: 6px;
         }
         .q-result-prodprice {
-            font-family: var(--font-display); font-size: 22px; letter-spacing: .5px; font-weight: 700;
+            font-family: var(--font-display); font-size: 24px; letter-spacing: .5px; font-weight: 700;
             color: var(--c-ink); line-height: 1;
         }
+        .q-result-installment {
+            font-family: var(--font-body); font-size: 11px; color: var(--c-muted);
+            margin-top: 4px; letter-spacing: .2px;
+        }
         .q-scarcity {
-            margin-top: 12px; font-family: var(--font-body); font-size: 11px; font-weight: 700;
+            margin-top: 12px; font-family: var(--font-body); font-size: 12px; font-weight: 700;
             color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
             display: flex; align-items: center; justify-content: flex-start; gap: 6px;
         }
@@ -573,7 +577,7 @@
         .q-seal { display: flex; align-items: center; gap: 9px; }
         .q-seal > i { font-size: 24px; color: var(--c-ink); flex-shrink: 0; }
         .q-seal span {
-            font-family: var(--font-body); font-size: 10px; font-weight: 700;
+            font-family: var(--font-body); font-size: 11px; font-weight: 700;
             text-transform: uppercase; letter-spacing: .6px; line-height: 1.25;
             color: var(--c-ink); text-align: left;
         }
@@ -808,6 +812,7 @@
                             <div class="q-result-prodinfo" id="q-result-prodinfo" style="display:none;">
                                 <div class="q-result-prodname" id="q-result-prodname"></div>
                                 <div class="q-result-prodprice" id="q-result-prodprice"></div>
+                                <div class="q-result-installment" id="q-result-installment"></div>
                                 <div class="q-scarcity" id="q-scarcity" style="display:none;"><i class="ph-bold ph-fire"></i> APENAS <strong id="q-scarcity-n"></strong>&nbsp;UNIDADES RESTANTES</div>
                             </div>
                             <div class="q-seals" id="q-seals" style="display:none;">
@@ -950,6 +955,32 @@
         var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
     }
 
+    // Parcelamento — o MESMO da pagina do produto (le do DOM; fallback do installments_data)
+    function getInstallment() {
+        var el = document.querySelector('.js-max-installments, .product-detail-installments, .product-installments, .js-installments-cart-total');
+        if (el) {
+            var t = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ');
+            if (t && /\d\s*x/i.test(t)) return t;
+        }
+        var dv = document.querySelector('[data-variants]');
+        if (dv) {
+            try {
+                var v = JSON.parse(dv.getAttribute('data-variants'))[0];
+                var idata = v.installments_data;
+                if (idata) {
+                    var plans = idata[Object.keys(idata)[0]];
+                    var best = null;
+                    Object.keys(plans).forEach(function (k) {
+                        var p = plans[k];
+                        if (p.without_interests && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
+                    });
+                    if (best && best.n > 1) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
+                }
+            } catch (e) {}
+        }
+        return '';
+    }
+
     function populateBuyCta() {
         var btn = document.getElementById('q-btn-buy-now');
         var trust = document.getElementById('q-seals');
@@ -962,6 +993,8 @@
         var priceEl = document.getElementById('q-result-prodprice');
         if (nameEl) nameEl.textContent = (prodName || '').trim();
         if (priceEl) priceEl.textContent = price || '';
+        var instEl = document.getElementById('q-result-installment');
+        if (instEl) instEl.textContent = getInstallment();
         if (info && ((prodName || '').trim() || price)) info.style.display = 'block';
         // Escassez
         var sc = document.getElementById('q-scarcity');
