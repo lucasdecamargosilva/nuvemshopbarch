@@ -544,7 +544,7 @@
 
         #q-result-actions-col {
             display: flex; flex-direction: column; gap: 8px;
-            padding: 20px 28px 0;
+            padding: 20px 28px 26px;
         }
         .q-res-mobile-only { margin: 0; }
 
@@ -967,8 +967,7 @@
         var sc = document.getElementById('q-scarcity');
         var scn = document.getElementById('q-scarcity-n');
         if (sc && scn && (prodName || '').trim()) { scn.textContent = scarcityCount(prodName); sc.style.display = 'flex'; }
-        // Notificações de compra
-        startFakeBuy();
+        // Notificações de compra: desativadas em todos os provadores
         btn.style.display = 'flex';
         if (trust) trust.style.display = 'flex';
         btn.onclick = buyNow;
