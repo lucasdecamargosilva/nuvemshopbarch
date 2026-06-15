@@ -955,34 +955,24 @@
         var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
     }
 
-    // Parcelamento — o MESMO da pagina (le do DOM; fallback do installments_data).
-    // So retorna se for parcelamento REAL (2x ou mais, valor > 0). Se nao tiver, vazio.
+    // Parcelamento — calculado do data-variants DO PRODUTO (mesma fonte do preco).
+    // Pega a maior parcela SEM JUROS (= o "em ate Nx sem juros" que a pagina mostra).
+    // Le do mesmo data-variants do preco, entao bate sempre com o produto. So 2x+ e valor>0.
     function getInstallment() {
-        function clean(t) {
-            t = (t || '').trim().replace(/\s+/g, ' ');
-            var m = t.match(/(\d+)\s*x/i);
-            if (!m || parseInt(m[1], 10) < 2) return '';
-            if (/r\$\s*0[.,]00\b/i.test(t)) return '';
-            return t;
-        }
-        var el = document.querySelector('.js-max-installments, .product-detail-installments, .product-installments, .js-installments-cart-total');
-        if (el) { var t = clean(el.innerText || el.textContent); if (t) return t; }
         var dv = document.querySelector('[data-variants]');
-        if (dv) {
-            try {
-                var v = JSON.parse(dv.getAttribute('data-variants'))[0];
-                var idata = v.installments_data;
-                if (idata) {
-                    var plans = idata[Object.keys(idata)[0]];
-                    var best = null;
-                    Object.keys(plans).forEach(function (k) {
-                        var p = plans[k];
-                        if (p.without_interests && p.installment_value > 0 && parseInt(k, 10) >= 2 && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
-                    });
-                    if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
-                }
-            } catch (e) {}
-        }
+        if (!dv) return '';
+        try {
+            var v = JSON.parse(dv.getAttribute('data-variants'))[0];
+            var idata = v.installments_data;
+            if (!idata) return '';
+            var plans = idata[Object.keys(idata)[0]];
+            var best = null;
+            Object.keys(plans).forEach(function (k) {
+                var p = plans[k];
+                if (p.without_interests && p.installment_value > 0 && parseInt(k, 10) >= 2 && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
+            });
+            if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
+        } catch (e) {}
         return '';
     }
 
