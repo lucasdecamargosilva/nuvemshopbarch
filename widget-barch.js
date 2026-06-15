@@ -955,13 +955,18 @@
         var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
     }
 
-    // Parcelamento — o MESMO da pagina do produto (le do DOM; fallback do installments_data)
+    // Parcelamento — o MESMO da pagina (le do DOM; fallback do installments_data).
+    // So retorna se for parcelamento REAL (2x ou mais, valor > 0). Se nao tiver, vazio.
     function getInstallment() {
-        var el = document.querySelector('.js-max-installments, .product-detail-installments, .product-installments, .js-installments-cart-total');
-        if (el) {
-            var t = (el.innerText || el.textContent || '').trim().replace(/\s+/g, ' ');
-            if (t && /\d\s*x/i.test(t)) return t;
+        function clean(t) {
+            t = (t || '').trim().replace(/\s+/g, ' ');
+            var m = t.match(/(\d+)\s*x/i);
+            if (!m || parseInt(m[1], 10) < 2) return '';
+            if (/r\$\s*0[.,]00\b/i.test(t)) return '';
+            return t;
         }
+        var el = document.querySelector('.js-max-installments, .product-detail-installments, .product-installments, .js-installments-cart-total');
+        if (el) { var t = clean(el.innerText || el.textContent); if (t) return t; }
         var dv = document.querySelector('[data-variants]');
         if (dv) {
             try {
@@ -972,9 +977,9 @@
                     var best = null;
                     Object.keys(plans).forEach(function (k) {
                         var p = plans[k];
-                        if (p.without_interests && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
+                        if (p.without_interests && p.installment_value > 0 && parseInt(k, 10) >= 2 && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
                     });
-                    if (best && best.n > 1) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
+                    if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
                 }
             } catch (e) {}
         }
@@ -994,7 +999,7 @@
         if (nameEl) nameEl.textContent = (prodName || '').trim();
         if (priceEl) priceEl.textContent = price || '';
         var instEl = document.getElementById('q-result-installment');
-        if (instEl) instEl.textContent = getInstallment();
+        if (instEl) { var _inst = getInstallment(); instEl.textContent = _inst; instEl.style.display = _inst ? 'block' : 'none'; }
         if (info && ((prodName || '').trim() || price)) info.style.display = 'block';
         // Escassez
         var sc = document.getElementById('q-scarcity');
