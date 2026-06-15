@@ -543,7 +543,7 @@
         #q-result-img-col img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
 
         #q-result-actions-col {
-            display: flex; flex-direction: column; gap: 18px;
+            display: flex; flex-direction: column; gap: 13px;
             padding: 20px 28px 0;
         }
         .q-res-mobile-only { margin: 0; }
