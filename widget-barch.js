@@ -955,9 +955,8 @@
         var el = document.getElementById('q-fakebuy'); if (el) el.classList.remove('show');
     }
 
-    // Parcelamento — calculado do data-variants DO PRODUTO (mesma fonte do preco).
-    // Pega a maior parcela SEM JUROS (= o "em ate Nx sem juros" que a pagina mostra).
-    // Le do mesmo data-variants do preco, entao bate sempre com o produto. So 2x+ e valor>0.
+    // Parcelamento — o MESMO da pagina: pega a MAIOR parcela do produto ("em ate Nx de R$ X").
+    // Le do data-variants (mesma fonte do preco). installments_data vem como STRING JSON aninhada.
     function getInstallment() {
         var dv = document.querySelector('[data-variants]');
         if (!dv) return '';
@@ -965,13 +964,16 @@
             var v = JSON.parse(dv.getAttribute('data-variants'))[0];
             var idata = v.installments_data;
             if (!idata) return '';
+            if (typeof idata === 'string') idata = JSON.parse(idata);
             var plans = idata[Object.keys(idata)[0]];
+            if (!plans) return '';
             var best = null;
             Object.keys(plans).forEach(function (k) {
+                var n = parseInt(k, 10);
                 var p = plans[k];
-                if (p.without_interests && p.installment_value > 0 && parseInt(k, 10) >= 2 && (!best || parseInt(k, 10) > best.n)) best = { n: parseInt(k, 10), val: p.installment_value };
+                if (n >= 2 && p.installment_value > 0 && (!best || n > best.n)) best = { n: n, val: p.installment_value };
             });
-            if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',') + ' sem juros';
+            if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',');
         } catch (e) {}
         return '';
     }
