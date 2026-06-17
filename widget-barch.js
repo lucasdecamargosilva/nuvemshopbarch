@@ -281,7 +281,7 @@
             display: block; width: 100%; height: 52px;
             padding: 0 16px; margin: 0;
             background: var(--c-surface); border: 1.5px solid transparent;
-            border-bottom: 1.5px solid var(--c-line); border-radius: 0;
+            border: 1.5px solid var(--c-line); border-radius: 14px;
             font-size: 16px; font-family: var(--font-body); font-weight: 400;
             color: var(--c-ink); outline: none;
             -webkit-appearance: none; appearance: none; transition: border-color 0.2s;
