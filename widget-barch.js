@@ -422,7 +422,7 @@
             border: 1.5px solid var(--c-line);
             background: transparent; color: var(--c-ink);
             font-family: var(--font-body); font-size: 12px; font-weight: 500;
-            cursor: pointer; transition: border-color 0.2s, background 0.2s; border-radius: 4px;
+            cursor: pointer; transition: border-color 0.2s, background 0.2s; border-radius: 14px;
         }
         .q-upload-btn:hover { border-color: var(--c-ink); background: var(--c-surface); }
         .q-upload-btn i { font-size: 16px; }
@@ -451,7 +451,7 @@
         .q-btn-outline {
             width: 100%; height: 52px;
             background: transparent; color: var(--c-ink);
-            border: 1.5px solid var(--c-line); border-radius: 0;
+            border: 1.5px solid var(--c-line); border-radius: 14px;
             font-family: var(--font-display); font-size: 13px;
             letter-spacing: 0.3px; text-transform: none;
             cursor: pointer; transition: border-color 0.2s, background 0.2s; box-sizing: border-box;
@@ -602,7 +602,7 @@
             width: 100%; padding: 17px 18px; font-family: var(--font-body);
             font-weight: 700; font-size: 15px; letter-spacing: .2px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            border-radius: 3px; transition: .2s; line-height: 1.2;
+            border-radius: 14px; transition: .2s; line-height: 1.2;
         }
         .q-btn-buy-now:hover { opacity: .88; }
         .q-btn-buy-now .q-buy-price { font-weight: 800; white-space: nowrap; }
