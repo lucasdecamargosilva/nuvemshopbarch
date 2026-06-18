@@ -1778,6 +1778,11 @@ const fd = new FormData();
             const phone = '55' + phoneInput.value.replace(/\D/g, '');
             genBtn.disabled = true;
 
+            // Feedback imediato: mostra a animacao na hora; o check de limite roda enquanto ela ja aparece.
+            try { uploadStep.style.display = 'none'; } catch (_) {}
+            try { document.getElementById('q-loading-box').style.display = 'flex'; } catch (_) {}
+
+
             try {
                 const resp = await fetch(WEBHOOK_CHECK_LIMIT, {
                     method: 'POST',
@@ -1786,6 +1791,7 @@ const fd = new FormData();
                 });
                 const data = await resp.json();
                 if (data.limited) {
+            try { document.getElementById('q-loading-box').style.display = 'none'; } catch (_) {}
                     genBtn.disabled = false;
                     createPixAndPoll();
                     return;
