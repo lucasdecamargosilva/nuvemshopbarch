@@ -441,7 +441,7 @@
         .q-btn-black {
             width: 100%; height: 52px;
             background: var(--c-accent); color: #fff;
-            border: none; border-radius: 0;
+            border: none; border-radius: 14px;
             font-family: var(--font-display); font-size: 13px;
             letter-spacing: 0.3px; text-transform: none;
             cursor: pointer; transition: opacity 0.2s; box-sizing: border-box;
