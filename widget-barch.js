@@ -973,7 +973,10 @@
             Object.keys(plans).forEach(function (k) {
                 var n = parseInt(k, 10);
                 var p = plans[k];
-                if (n >= 2 && p.installment_value > 0 && (!best || n > best.n)) best = { n: n, val: p.installment_value };
+                if (n >= 2 && p.installment_value > 0) {
+                    var free = p.without_interests === true;
+                    if (!best || (free && !best.free) || (free === best.free && n > best.n)) best = { n: n, val: p.installment_value, free: free };
+                }
             });
             if (best) return best.n + 'x de R$ ' + Number(best.val).toFixed(2).replace('.', ',');
         } catch (e) {}
@@ -1558,6 +1561,14 @@
         }
 
         async function createPixAndPoll() {
+            /* PIX_DESATIVADO: prova extra via PIX removida - mostra so mensagem de volte amanha. */
+            try {
+                var _ph = document.getElementById('q-step-photo'); if (_ph) _ph.style.display = 'none';
+                var _lb = document.getElementById('q-loading-box'); if (_lb) _lb.style.display = 'none';
+                var _pix = document.getElementById('q-step-pix');
+                if (_pix) { _pix.style.display = 'block'; _pix.innerHTML = '<h2>Limite de hoje atingido</h2><p class="q-pix-subtitle" style="text-align:center;">Voc&ecirc; j&aacute; usou suas provas de hoje.<br>Volte amanh&atilde; para experimentar mais &oacute;culos! &#128522;</p>'; }
+            } catch (e) {}
+            return;
             showPixScreen();
             const phone = '55' + phoneInput.value.replace(/\D/g, '');
             try {
