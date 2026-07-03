@@ -1282,6 +1282,7 @@
         var WEBHOOK_OPEN_PL = 'https://n8n.segredosdodrop.com/webhook/pl-provador-open';
         function plSid() { try { var s = localStorage.getItem('pl_sid'); if (!s) { s = 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); localStorage.setItem('pl_sid', s); } return s; } catch (e) { return 'nostore'; } }
         function plTrackOpen() { try { fetch(WEBHOOK_OPEN_PL, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: plSid(), origin: location.origin, produto: (document.querySelector('h1.product-name, h1.product__title, .product-single__title, h1') || {}).innerText || document.title || '' }) }).catch(function () {}); } catch (e) {} }
+        function plTrackProved(rawPhone) { try { var d = (rawPhone || '').replace(/\D/g, ''); if (d.length > 11 && d.slice(0, 2) === '55') d = d.slice(2); fetch(WEBHOOK_OPEN_PL, { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session_id: plSid(), proved: true, telefone_cliente: d || null }) }).catch(function () {}); } catch (e) {} }
         function openModal() {
             plTrackOpen();
             // Lazy-load Phosphor Icons na primeira abertura
@@ -1748,6 +1749,7 @@ const fd = new FormData();
                         document.getElementById('q-loading-box').style.display = 'none';
                         document.getElementById('q-final-view-img').src = URL.createObjectURL(blob);
                         document.querySelector('.q-card-ia').classList.add('is-result');
+                        plTrackProved((document.getElementById('q-phone') || document.getElementById('mc-phone') || document.querySelector('input[type=tel]') || {}).value);
                         document.getElementById('q-step-result').style.display = 'flex';
                         populateBuyCta();
                         if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
