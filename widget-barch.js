@@ -1224,7 +1224,7 @@
                 if (src && src.includes('data:image')) {
                     const parentA = img.closest('a');
                     if (parentA && parentA.href && !parentA.href.includes('javascript:')) {
-                        src = parentA.href;
+                        src = (/\.(jpe?g|png|webp|gif|avif)(\?|#|$)/i.test(parentA.href) ? parentA.href : '');
                     } else if (img.getAttribute('data-srcset')) {
                         src = img.getAttribute('data-srcset').split(',')[0].trim().split(' ')[0];
                     }
@@ -1833,6 +1833,7 @@ const fd = new FormData();
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
                         try {
                             const _b = await fetch(allProdImgs[_pi]).then(r => r.blob());
+                            if (!_b || !/^image\//i.test(_b.type)) continue; // pula HTML/nao-imagem -> evita 400 do gerador (ALTA DEMANDA)
                             if (_pi === 0) {
                                 fd.append('product_image', _b, 'product.jpg');
                             } else {
