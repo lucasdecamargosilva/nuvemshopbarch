@@ -519,10 +519,12 @@
             color: var(--c-muted); font-family: var(--font-body);
         }
         .q-loading-t2 img { height: 16px; width: auto; opacity: 0.7; }
-        .q-loading-bar { height: 1px; background: var(--c-line); width: 100%; position: relative; overflow: hidden; }
+        .q-loading-bar { height: 3px; background: var(--c-line); width: 100%; position: relative; overflow: hidden; border-radius: 2px; }
         .q-loading-bar > div {
-            position: absolute; top: 0; left: 0; height: 100%; width: 35%;
-            background: var(--c-accent); animation: q-slide 1.4s infinite linear;
+            position: absolute; top: 0; left: 0; height: 100%; width: 100%;
+            background: var(--c-accent); border-radius: 2px;
+            transform: scaleX(0); transform-origin: left;
+            transition: transform 0.3s ease-out;
         }
 
         /* ── Result ── */
@@ -1397,6 +1399,29 @@
             section.style.display = 'block';
         }
 
+        // ── Barra de progresso simulada (não há evento real de progresso do backend).
+        // Desacelera perto de 92% e se auto-encerra sozinha quando a tela de loading
+        // for escondida (sucesso, erro ou limite) — não precisa de hook em cada saída. ──
+        var _qProgressTimer = null;
+        function startLoadingProgress() {
+            if (_qProgressTimer) { clearInterval(_qProgressTimer); _qProgressTimer = null; }
+            var lb = document.getElementById('q-loading-box');
+            var bar = lb ? lb.querySelector('.q-loading-bar > div') : null;
+            if (!lb || !bar) return;
+            bar.style.transition = 'none';
+            bar.style.transform = 'scaleX(0)';
+            void bar.offsetWidth;
+            bar.style.transition = 'transform 0.3s ease-out';
+            var progress = 0;
+            _qProgressTimer = setInterval(function () {
+                if (lb.style.display !== 'flex') { clearInterval(_qProgressTimer); _qProgressTimer = null; return; }
+                var remaining = 92 - progress;
+                progress += Math.max(remaining * 0.06, 0.15);
+                if (progress > 92) progress = 92;
+                bar.style.transform = 'scaleX(' + (progress / 100) + ')';
+            }, 200);
+        }
+
         function showError() {
             var lb = document.getElementById('q-loading-box');
             var su = photoStep;
@@ -1660,6 +1685,7 @@
 
                 uploadStep.style.display = 'none';
                 document.getElementById('q-loading-box').style.display = 'flex';
+                startLoadingProgress();
 
                 try {
                     // Guard: re-valida telefone antes de submeter (evita whatsapp vazio)
@@ -1799,7 +1825,8 @@ const fd = new FormData();
 
             // Feedback imediato: mostra a animacao na hora; o check de limite roda enquanto ela ja aparece.
             try { uploadStep.style.display = 'none'; } catch (_) {}
-            try { document.getElementById('q-loading-box').style.display = 'flex'; } catch (_) {}
+            try { document.getElementById('q-loading-box').style.display = 'flex';
+ startLoadingProgress(); } catch (_) {}
 
 
             try {
