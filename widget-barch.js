@@ -933,7 +933,10 @@
     function scarcityCount(name) {
         var h = 5381, s = String(name || '');
         for (var i = 0; i < s.length; i++) h = (h * 33 + s.charCodeAt(i)) >>> 0;
-        return 2 + (h % 6); // 2..7
+        var FLOOR = 8, _st = 10 + (h % 4);   // estoque inicial por produto (10..13)
+            var _dn = new Date(), _df = (_dn.getHours() * 60 + _dn.getMinutes()) / 1440;
+            var _q = _st - Math.floor(_df * 5);   // cai ao longo do dia
+            return _q < FLOOR ? FLOOR : _q;        // piso 8
     }
     // Notificações de compra (prova social)
     var Q_FAKE_NAMES = ['Ana C.','Carlos M.','Mariana S.','João P.','Beatriz R.','Pedro A.','Juliana F.','Lucas T.','Fernanda L.','Rafael O.','Camila N.','Bruno G.','Larissa D.','Gabriel V.','Patrícia H.','Thiago B.','Aline M.','Rodrigo S.','Vanessa P.','Felipe C.','Letícia M.','Marcos A.'];
