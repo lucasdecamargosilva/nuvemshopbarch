@@ -189,7 +189,7 @@
             width: 100%; padding: 13px 16px;
             background: transparent; color: var(--c-ink);
             border: 1.5px solid var(--c-accent); border-radius: 8px;
-            font-family: var(--font-body), sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-transform: none;
+            font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-transform: none;
             cursor: pointer; transition: background 0.25s, color 0.25s;
             margin-bottom: 10px; box-sizing: border-box;
         }
