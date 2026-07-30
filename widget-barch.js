@@ -1363,6 +1363,7 @@
             lockBodyScroll();
             // Mostra contador imediatamente (só por IP) ao abrir o modal
             if (typeof _checkProvasRestantes === 'function') _checkProvasRestantes();
+            try { pixResume(); } catch (e) {}
         }
 
 
@@ -1621,6 +1622,72 @@
             if (pixPollingTimer) { clearInterval(pixPollingTimer); pixPollingTimer = null; }
         }
 
+        // ── Recuperacao do pagamento ──────────────────────────────────────────
+        // O PIX e pago NO APP DO BANCO: a aba do provador vai pra segundo plano
+        // e o celular suspende o setInterval. Antes, se o cliente nao voltasse
+        // pro modal ainda aberto, a prova paga nunca aparecia. Agora reconferimos
+        // sempre que ele volta pra aba ou reabre o provador.
+        let pixWatchId = null;
+
+        function pixUnlock(payment_id, phone) {
+            stopPixPolling();
+            pixWatchId = null;
+            try { if (phone) _pixClearPending(phone); } catch (_) {}
+            pixPaymentId = payment_id;
+            var _msg = document.getElementById('q-pix-status-msg');
+            if (_msg) {
+                _msg.textContent = 'Pagamento confirmado!';
+                _msg.className = 'q-pix-status q-pix-approved';
+            }
+            setTimeout(function () {
+                hidePixScreen();
+                // Se a pagina recarregou, perdemos a foto da memoria. O credito
+                // continua valendo no servidor, entao pedimos a foto de novo em
+                // vez de deixar a tela muda (era isso que o cliente via).
+                if (!userPhoto) {
+                    try {
+                        photoStep.style.display = 'flex';
+                        var h = document.getElementById('q-validation-hint');
+                        if (h) {
+                            h.textContent = '\u2705 Pagamento confirmado! Envie sua foto para gerar a prova.';
+                            h.classList.add('is-visible');
+                        }
+                    } catch (_) {}
+                    return;
+                }
+                runGeneration();
+            }, 1200);
+        }
+
+        async function pixCheck(payment_id, phone) {
+            try {
+                const sr = await fetch(WEBHOOK_PIX_STATUS + '?payment_id=' + payment_id);
+                const st = await sr.json();
+                if (st && st.status === 'approved') { pixUnlock(payment_id, phone); return true; }
+            } catch (_) {}
+            return false;
+        }
+
+        async function pixResume() {
+            let id = pixWatchId, ph = null;
+            if (!id) {
+                try {
+                    const raw = localStorage.getItem(_PIX_LS_KEY);
+                    const arr = raw ? JSON.parse(raw) : [];
+                    const now = Date.now();
+                    const p = arr.filter(function (x) { return (now - x.ts) < _PIX_TTL_MS; })[0];
+                    if (p) { id = p.payment_id; ph = p.phone; }
+                } catch (_) {}
+            }
+            if (id) await pixCheck(id, ph);
+        }
+
+        // Volta do app do banco -> reconfere na hora.
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') pixResume();
+        });
+        window.addEventListener('focus', function () { pixResume(); });
+
         function showPixScreen() {
             uploadStep.style.display = 'none';
             document.getElementById('q-step-pix').style.display = 'block';
@@ -1701,26 +1768,14 @@
                 document.getElementById('q-pix-qr-img').src = 'data:image/png;base64,' + pix.qr_code_base64;
                 document.getElementById('q-pix-code').value = pix.qr_code;
 
-                // Polling a cada 3s por até 5min
+                // Polling a cada 3s ate o PIX expirar (30min), nao mais 5min.
+                // O reforco de verdade e o pixResume() no visibilitychange.
+                pixWatchId = pix.payment_id;
                 let attempts = 0;
-                pixPollingTimer = setInterval(async () => {
+                pixPollingTimer = setInterval(function () {
                     attempts++;
-                    if (attempts > 100) { stopPixPolling(); return; }
-                    try {
-                        const sr = await fetch(WEBHOOK_PIX_STATUS + '?payment_id=' + pix.payment_id);
-                        const st = await sr.json();
-                        if (st.status === 'approved') {
-                            stopPixPolling();
-                            _pixClearPending(phone);
-                            document.getElementById('q-pix-status-msg').textContent = 'Pagamento confirmado!';
-                            document.getElementById('q-pix-status-msg').className = 'q-pix-status q-pix-approved';
-                            setTimeout(() => {
-                                hidePixScreen();
-                                pixPaymentId = pix.payment_id;
-                                runGeneration();
-                            }, 1200);
-                        }
-                    } catch (_) {}
+                    if (attempts > 600) { stopPixPolling(); return; }
+                    pixCheck(pix.payment_id, phone);
                 }, 3000);
             } catch (e) {
                 hidePixScreen();
