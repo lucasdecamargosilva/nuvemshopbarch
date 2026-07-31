@@ -1389,6 +1389,80 @@
             } catch (e) {}
         }
 
+        /* ── Fechar sem perder a foto ──────────────────────────────────────
+           Fechar o provador depois de provar resetava tudo e a foto gerada
+           sumia. Agora o resultado fica guardado: ao reabrir pelo selo ou
+           pelo botao, o cliente volta direto na foto dele.
+           Como a tela de resultado nao tinha saida (o #q-retry-btn e lido no
+           JS mas nunca existiu no HTML), adicionamos "Provar outra foto" --
+           sem isso o cliente ficaria preso no resultado. */
+        function _plTemResultado() {
+            var i = document.getElementById('q-final-view-img');
+            return !!(i && i.getAttribute('src'));
+        }
+
+        function _plNovaProva() {
+            var img = document.getElementById('q-final-view-img');
+            if (img) img.removeAttribute('src');
+            var s = document.getElementById('q-step-result');
+            if (s) s.style.display = 'none';
+            var p = document.getElementById('q-step-photo');
+            if (p) p.style.display = 'flex';
+            var c = document.querySelector('.q-card-ia');
+            if (c) c.classList.remove('is-result');
+            try { if (typeof userPhoto !== 'undefined') userPhoto = null; } catch (e) {}
+            try { if (typeof pixPaymentId !== 'undefined') pixPaymentId = null; } catch (e) {}
+            try { if (typeof preImg !== 'undefined' && preImg) preImg.style.display = 'none'; } catch (e) {}
+            try { if (typeof facePlaceholder !== 'undefined' && facePlaceholder) facePlaceholder.style.display = 'flex'; } catch (e) {}
+            try { if (typeof cameraInput !== 'undefined' && cameraInput) cameraInput.value = ''; } catch (e) {}
+            try { if (typeof galleryInput !== 'undefined' && galleryInput) galleryInput.value = ''; } catch (e) {}
+            try { if (typeof checkFields === 'function') checkFields(); } catch (e) {}
+        }
+
+        function _plMontaBotaoNovaProva() {
+            var col = document.getElementById('q-result-actions-col');
+            if (!col || document.getElementById('q-btn-nova-prova')) return;
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.id = 'q-btn-nova-prova';
+            b.className = 'q-btn-outline';
+            b.textContent = 'Provar outra foto';
+            b.style.marginTop = '10px';
+            b.onclick = _plNovaProva;
+            col.appendChild(b);
+        }
+
+        var _plCloseOriginal = closeModal;
+        closeModal = function () {
+            if (_plTemResultado()) {
+                try { modal.style.display = 'none'; } catch (e) {}
+                try { unlockBodyScroll(); } catch (e) {}
+                try { stopFakeBuy(); } catch (e) {}
+                return;
+            }
+            return _plCloseOriginal.apply(this, arguments);
+        };
+
+        var _plOpenOriginal = openModal;
+        openModal = function () {
+            var _r = _plOpenOriginal.apply(this, arguments);
+            try {
+                _plMontaBotaoNovaProva();
+                if (_plTemResultado()) {
+                    ['q-step-photo', 'q-loading-box', 'q-step-error'].forEach(function (id) {
+                        var el = document.getElementById(id);
+                        if (el) el.style.display = 'none';
+                    });
+                    var s = document.getElementById('q-step-result');
+                    if (s) s.style.display = 'flex';
+                    var c = document.querySelector('.q-card-ia');
+                    if (c) c.classList.add('is-result');
+                }
+            } catch (e) {}
+            return _r;
+        };
+
+
 
         function applyProduct(product) {
             currentProduct = product;
