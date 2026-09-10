@@ -2112,7 +2112,7 @@ const fd = new FormData();
     if(!/^armacao\b/.test(normalized)||/^lente\b/.test(normalized))return;
     if(document.querySelector('script[data-pl-barch-lentes]'))return;
     var script=document.createElement('script');
-    script.src='https://lucasdecamargosilva.github.io/nuvemshopbarch/lentes-barch.js?v=20260909-1';
+    script.src='https://lucasdecamargosilva.github.io/nuvemshopbarch/lentes-barch.js?v=20260909-2';
     script.async=true;
     script.dataset.plBarchLentes='1';
     document.head.appendChild(script);
