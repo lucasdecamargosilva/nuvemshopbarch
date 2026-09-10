@@ -2100,20 +2100,3 @@ const fd = new FormData();
     }
 
 })();
-
-/* Fluxo de lentes disponível somente nas armações de grau da BARCH. */
-(function () {
-    var path=String(window.location.pathname||'').replace(/\/+$/,'').toLowerCase();
-    if(!/^\/produtos\/[^/]+$/.test(path))return;
-    var name='';
-    try{name=String(window.LS&&window.LS.product&&window.LS.product.name||'');}catch(_){}
-    if(!name)name=String((document.querySelector('h1.product-name,h1.product__title,h1')||{}).textContent||'');
-    var normalized=name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    if(!/^armacao\b/.test(normalized)||/^lente\b/.test(normalized))return;
-    if(document.querySelector('script[data-pl-barch-lentes]'))return;
-    var script=document.createElement('script');
-    script.src='https://lucasdecamargosilva.github.io/nuvemshopbarch/lentes-barch.js?v=20260909-1';
-    script.async=true;
-    script.dataset.plBarchLentes='1';
-    document.head.appendChild(script);
-})();
