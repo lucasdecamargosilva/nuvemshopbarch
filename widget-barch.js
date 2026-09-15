@@ -1336,10 +1336,24 @@
             if (!urls || !urls.length) return _faceUrls;
             var det = await getFaceDetector();
             if (!det) return _faceUrls;
+            // Nos produtos clip-on, a galeria da BARCH vem em blocos: fotos da
+            // armação de grau no rosto, packshots e, depois, fotos do clip solar.
+            // Coleta somente o PRIMEIRO bloco com rosto. Ao encontrar a primeira
+            // foto sem rosto depois desse bloco, encerra a busca e não alcança as
+            // referências solares/escuras que aparecem mais adiante na galeria.
+            var _title = String((document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '').toLowerCase();
+            var _isClipOn = /clip[\s-]?on/.test(_title);
+            var _startedFaceBlock = false;
             for (var i = 0; i < urls.length && _faceUrls.length < 4; i++) {
                 var img = await _plLoadCorsImg(urls[i]);
                 if (!img) continue;
-                if (await _plImgHasFace(det, img)) _faceUrls.push(urls[i]);
+                var _hasFace = await _plImgHasFace(det, img);
+                if (_hasFace) {
+                    _startedFaceBlock = true;
+                    _faceUrls.push(urls[i]);
+                } else if (_isClipOn && _startedFaceBlock) {
+                    break;
+                }
             }
             return _faceUrls;
         }
