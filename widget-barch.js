@@ -1226,6 +1226,39 @@
                 }
             });
             let uniqueImgs = [];
+
+            // A Nuvemshop deixa as imagens seguintes da galeria em lazy-load. Em alguns
+            // produtos o DOM expõe apenas a primeira <img>, embora window.LS já contenha
+            // a galeria completa e ordenada. Usa essa fonte primeiro para que a detecção
+            // consiga realmente comparar todas as fotos no rosto.
+            try {
+                var _lsImages = window.LS && window.LS.product && window.LS.product.images;
+                if (Array.isArray(_lsImages) && _lsImages.length) {
+                    var _probe = String((document.querySelector('meta[property="og:image"]') || {}).content || '');
+                    if (!_probe.includes('/products/')) {
+                        var _probeImg = Array.from(document.images).map(function (img) { return img.currentSrc || img.src || ''; }).find(function (src) { return src.includes('/products/'); });
+                        _probe = _probeImg || '';
+                    }
+                    var _prefixMatch = _probe.match(/^(https?:\/\/[^?#]+\/products\/)/i);
+                    if (_prefixMatch) {
+                        _lsImages.forEach(function (entry) {
+                            var file = String(entry && (entry.image || entry.src) || '').replace(/^.*\//, '').replace(/\.(?:jpe?g|png|webp|avif)$/i, '');
+                            if (file) uniqueImgs.push(_prefixMatch[1] + file + '-1024-1024.webp');
+                        });
+                    }
+                }
+            } catch (_) {}
+
+            // O tema também mantém todas as fotos como links para o arquivo grande,
+            // mesmo quando as <img> seguintes ainda não foram carregadas. Essa é a
+            // fonte mais confiável para completar a galeria no navegador.
+            try {
+                document.querySelectorAll('a[href*="acdn-us.mitiendanube.com"][href*="/products/"]').forEach(function (link) {
+                    var href = String(link.href || '');
+                    if (/\.(?:jpe?g|png|webp|avif)(?:[?#]|$)/i.test(href)) uniqueImgs.push(upgradeImgUrl(href));
+                });
+            } catch (_) {}
+
             imgEls.forEach(img => {
                 let src = img.dataset?.src || img.getAttribute('data-src') || img.src;
 
@@ -1327,8 +1360,24 @@
         }
         async function _plImgHasFace(det, img) {
             try {
-                if (det.native) { var f = await det.native.detect(img); return !!(f && f.length); }
-                if (det.mp) { var r = det.mp.detect(img); return !!(r && r.detections && r.detections.length); }
+                var _iw = Number(img.naturalWidth || img.width || 1);
+                var _ih = Number(img.naturalHeight || img.height || 1);
+                var _validBox = function (box, score) {
+                    if (!box) return false;
+                    if (typeof score === 'number' && score < 0.75) return false;
+                    return Number(box.width || 0) / _iw >= 0.28 && Number(box.height || 0) / _ih >= 0.20;
+                };
+                if (det.native) {
+                    var f = await det.native.detect(img);
+                    return !!(f && f.some(function (face) { return _validBox(face.boundingBox, null); }));
+                }
+                if (det.mp) {
+                    var r = det.mp.detect(img);
+                    return !!(r && r.detections && r.detections.some(function (face) {
+                        var score = face.categories && face.categories[0] ? Number(face.categories[0].score) : null;
+                        return _validBox(face.boundingBox, score);
+                    }));
+                }
             } catch (e) {}
             return false;
         }
@@ -1336,22 +1385,22 @@
             if (!urls || !urls.length) return _faceUrls;
             var det = await getFaceDetector();
             if (!det) return _faceUrls;
-            // Nos produtos clip-on, a galeria da BARCH vem em blocos: fotos da
-            // armação de grau no rosto, packshots e, depois, fotos do clip solar.
-            // Coleta somente o PRIMEIRO bloco com rosto. Ao encontrar a primeira
-            // foto sem rosto depois desse bloco, encerra a busca e não alcança as
-            // referências solares/escuras que aparecem mais adiante na galeria.
-            var _title = String((document.querySelector('h1.product__title,.product-single__title,h1') || {}).innerText || document.title || '').toLowerCase();
-            var _isClipOn = /clip[\s-]?on/.test(_title);
+            // A galeria da BARCH vem em blocos: primeiro as fotos da armação de grau
+            // no rosto, depois packshots e/ou fotos solares. Coleta somente o PRIMEIRO
+            // bloco com rosto. Ao encontrar a primeira foto sem rosto depois do bloco,
+            // encerra a busca e não alcança referências posteriores com lente escura.
             var _startedFaceBlock = false;
-            for (var i = 0; i < urls.length && _faceUrls.length < 4; i++) {
+            // Usa no máximo as duas primeiras referências válidas: na organização real
+            // da loja elas são as fotos com lente transparente; as solares vêm depois.
+            var _maxFaceRefs = 2;
+            for (var i = 0; i < urls.length && _faceUrls.length < _maxFaceRefs; i++) {
                 var img = await _plLoadCorsImg(urls[i]);
                 if (!img) continue;
                 var _hasFace = await _plImgHasFace(det, img);
                 if (_hasFace) {
                     _startedFaceBlock = true;
                     _faceUrls.push(urls[i]);
-                } else if (_isClipOn && _startedFaceBlock) {
+                } else if (_startedFaceBlock) {
                     break;
                 }
             }
