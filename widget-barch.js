@@ -1215,7 +1215,7 @@
             return url;
         }
 
-        function extractImages() {
+        function extractImages(limit) {
             const containersSelectors ='.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
             let imgEls = [];
@@ -1261,7 +1261,7 @@
                 const og = document.querySelector('meta[property="og:image"]')?.content;
                 if (og) uniqueImgs.push(upgradeImgUrl(og));
             }
-            return uniqueImgs.slice(0, 4);
+            return uniqueImgs.slice(0, limit || 4);
         }
 
         function populateImageSelector() {
@@ -1346,7 +1346,7 @@
         function startFaceDetect() {
             if (faceDetectPromise) return faceDetectPromise;
             var _urls = [];
-            try { if (typeof extractImages === 'function') _urls = extractImages().slice(0, 12); } catch (e) {}
+            try { if (typeof extractImages === 'function') _urls = extractImages(12); } catch (e) {}
             faceDetectPromise = _plDetectFaces(_urls).then(function (arr) {
                 if (arr && arr.length) { try { console.log('[PL] fotos no rosto detectadas:', arr.length); } catch (e) {} }
                 return arr;
@@ -1945,28 +1945,22 @@ const fd = new FormData();
                             }
                         }
                     } catch (_) {}
-                    // Detecção de rosto: manda 1 foto no rosto como PRINCIPAL (o gerador usa pra
-                    // calibrar a proporção/tamanho do óculos) + as fotos de fundo branco (packshot),
-                    // que mostram os detalhes da armação. Assim garante proporção E detalhe.
-                    // Sem rosto detectado → mantém as fotos default (fallback, sem regressão).
+                    // Detecção de rosto: quando a galeria tiver fotos no rosto, envia SOMENTE
+                    // essas referências. Misturar packshots (especialmente fotos com armação e
+                    // clip-on separados) confunde a proporção e pode aumentar o óculos na geração.
+                    // Sem rosto detectado, mantém as fotos default como fallback.
                     try {
                         if (faceDetectPromise) { await Promise.race([faceDetectPromise, new Promise(function (r) { setTimeout(r, 4000); })]); }
                         if (_faceUrls && _faceUrls.length) {
                             var _key = function (u) { return String(u || '').split('?')[0]; };
-                            var _faceKeys = {};
-                            _faceUrls.forEach(function (u) { _faceKeys[_key(u)] = 1; });
-                            var _packshots = allProdImgs.filter(function (u) { return !_faceKeys[_key(u)]; });
                             var _mix = [];
                             var _add = function (u) { if (u && !_mix.some(function (x) { return _key(x) === _key(u); })) _mix.push(u); };
-                            _add(_faceUrls[0]);
-                            _packshots.forEach(_add);
-                            _faceUrls.slice(1).forEach(_add);
-                            allProdImgs.forEach(_add);
+                            _faceUrls.forEach(_add);
                             allProdImgs = _mix;
                         }
                     } catch (e) {}
                     allProdImgs = allProdImgs.slice(0, 4);
-                    console.log('[PL Cacife] Enviando', allProdImgs.length, 'fotos do produto');
+                    console.log('[PL Barch] Enviando', allProdImgs.length, _faceUrls.length ? 'fotos no rosto' : 'fotos do produto');
                     let _primaryDone = false, _slot = 1;
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
                         try {
