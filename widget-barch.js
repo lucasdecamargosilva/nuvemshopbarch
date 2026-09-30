@@ -201,10 +201,10 @@
         .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: -14px 0 0 !important;   /* 10px abaixo do Comprar (ele tem margin-bottom 24px) */
             border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
         .q-pl-igual-lentes + .lip-btn-wrapper { margin-top: 8px !important; }
-        /* Barch: "Comprar" com o mesmo desenho do provador e do "Escolher lentes e comprar" (cor verde mantida) */
-        #product_form input.js-addtocart.js-prod-submit-form { height: 52px !important; border-radius: 8px !important; font-size: 12px !important;
-            font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; padding: 0 18px !important; line-height: 52px !important; }
-        #product_form .form-quantity.form-quantity-product { height: 52px !important; border-radius: 8px !important; display: flex !important; align-items: center !important; }   /* botões juntos: provador → 8px → Escolher lentes */
+        /* Barch: "Comprar" com o mesmo desenho (letra, cantos) do provador e do "Escolher lentes e comprar"; tamanho e cor verde mantidos */
+        #product_form input.js-addtocart.js-prod-submit-form { border-radius: 8px !important; font-size: 12px !important;
+            font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }   /* tamanho (40px) do tema mantido */
+        #product_form .form-quantity.form-quantity-product { border-radius: 8px !important; }   /* botões juntos: provador → 8px → Escolher lentes */
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
