@@ -2176,6 +2176,9 @@ const fd = new FormData();
         var agendado = false;
         function ajusta() {
             agendado = false;
+            // "Comprar" em negrito: aplicado direto no botão (uma regra do tema vence a do <style>)
+            var bb = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form');
+            if (bb && bb.style.getPropertyValue('font-weight') !== '700') bb.style.setProperty('font-weight', '700', 'important');
             var lip = document.querySelector('.lip-btn-wrapper');
             var prov = document.querySelector('.q-btn-inline-provador');
             if (!lip || !prov || !lip.parentNode) return;
