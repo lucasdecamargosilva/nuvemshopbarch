@@ -1161,7 +1161,12 @@
         // Posiciona ABAIXO do botão de compra
         const buyBtn = document.querySelector('.js-addtocart, .btn-add-to-cart, [data-component="product.add-to-cart"]');
         if (buyBtn) {
-            buyBtn.parentNode.insertBefore(inlineBtn, buyBtn.nextSibling);
+            // Vai DEPOIS do aviso "Incluindo..." da Nuvemshop (.js-addtocart-placeholder), que fica logo
+            // após o botão; entre os dois, o clique em Comprar mostrava dois "Incluindo..." (30/09/2026).
+            let anchor = buyBtn;
+            let nx = buyBtn.nextElementSibling;
+            while (nx && nx.classList && (nx.classList.contains('js-addtocart-placeholder') || nx.classList.contains('js-addtocart'))) { anchor = nx; nx = nx.nextElementSibling; }
+            buyBtn.parentNode.insertBefore(inlineBtn, anchor.nextSibling);
         } else {
             const variantsContainer = document.querySelector('.js-product-variants');
             if (variantsContainer) {
