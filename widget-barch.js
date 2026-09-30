@@ -2163,16 +2163,18 @@ const fd = new FormData();
     // Barch: quando o app Lente Ideal injeta "Escolher lentes e comprar" (largura total da linha),
     // o provador vai pra MESMA linha, logo acima dele, com o mesmo tamanho.
     (function () {
-        var tentativas = 0;
-        var iv = setInterval(function () {
-            tentativas++;
+        // o Lente Ideal só injeta o botão depois da 1ª interação do visitante → observa sem prazo
+        var agendado = false;
+        function ajusta() {
+            agendado = false;
             var lip = document.querySelector('.lip-btn-wrapper');
             var prov = document.querySelector('.q-btn-inline-provador');
-            if (lip && prov && lip.parentNode) {
-                if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
-                prov.classList.add('q-pl-igual-lentes');
-            }
-            if (tentativas > 40) clearInterval(iv);
-        }, 500);
+            if (!lip || !prov || !lip.parentNode) return;
+            if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
+            if (!prov.classList.contains('q-pl-igual-lentes')) prov.classList.add('q-pl-igual-lentes');
+        }
+        new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
+            .observe(document.documentElement, { childList: true, subtree: true });
+        ajusta();
     })();
 })();
