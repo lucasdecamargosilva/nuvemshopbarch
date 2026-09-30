@@ -189,10 +189,10 @@
         /* ── Inline button ── */
         .q-btn-inline-provador {
             display: flex; align-items: center; justify-content: center; gap: 7px;
-            width: 100%; padding: 13px 16px;
+            width: 100%; height: 40px; padding: 0 16px;   /* mesmo tamanho do "Comprar"/"Escolher lentes e comprar" da Barch */
             background: transparent; color: var(--c-ink);
-            border: 1.5px solid var(--c-accent); border-radius: 8px;
-            font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-transform: none;
+            border: 1px solid var(--c-accent); border-radius: 4px;
+            font-family: inherit; font-size: 12px; font-weight: 400; letter-spacing: 2px; text-transform: uppercase; line-height: 14px;
             cursor: pointer; transition: background 0.25s, color 0.25s;
             margin-bottom: 10px; box-sizing: border-box;
         }
