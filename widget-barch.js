@@ -569,7 +569,7 @@
             font-family: var(--font-body); font-size: 12px; color: var(--c-muted);
             margin-top: 4px; letter-spacing: .2px;
         }
-        .q-scarcity {
+        .q-scarcity { display: none !important; /* escassez removida 30/09 (Lucas) */
             margin-top: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 700;
             color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
             display: flex; align-items: center; justify-content: flex-start; gap: 6px;
