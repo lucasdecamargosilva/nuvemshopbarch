@@ -197,6 +197,9 @@
             margin-bottom: 10px; box-sizing: border-box;
         }
         .q-btn-inline-provador:hover { background: var(--c-accent); color: #fff; }
+        /* Barch: ao lado do botão do app Lente Ideal ("Escolher lentes e comprar") o provador ganha a MESMA largura/altura dele */
+        .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: 15px 0 0 !important;
+            border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
@@ -2156,4 +2159,20 @@ const fd = new FormData();
         else init();
     }
 
+
+    // Barch: quando o app Lente Ideal injeta "Escolher lentes e comprar" (largura total da linha),
+    // o provador vai pra MESMA linha, logo acima dele, com o mesmo tamanho.
+    (function () {
+        var tentativas = 0;
+        var iv = setInterval(function () {
+            tentativas++;
+            var lip = document.querySelector('.lip-btn-wrapper');
+            var prov = document.querySelector('.q-btn-inline-provador');
+            if (lip && prov && lip.parentNode) {
+                if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
+                prov.classList.add('q-pl-igual-lentes');
+            }
+            if (tentativas > 40) clearInterval(iv);
+        }, 500);
+    })();
 })();
