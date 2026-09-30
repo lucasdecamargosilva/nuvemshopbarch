@@ -202,7 +202,7 @@
             border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
         .q-pl-igual-lentes + .lip-btn-wrapper { margin-top: 8px !important; }
         /* Barch: "Comprar" com a mesma altura/cantos do provador e do "Escolher lentes e comprar"; letra e cor do tema mantidas */
-        #product_form input.js-addtocart.js-prod-submit-form { height: 52px !important; line-height: 52px !important; padding-top: 0 !important; padding-bottom: 0 !important; border-radius: 8px !important; }   /* mesma altura dos outros; letra do tema mantida */
+        #product_form input.js-addtocart.js-prod-submit-form { height: 52px !important; line-height: 52px !important; padding-top: 0 !important; padding-bottom: 0 !important; border-radius: 8px !important; font-weight: 700 !important; }   /* mesma altura dos outros; letra do tema mantida */
         #product_form .form-quantity.form-quantity-product { height: 52px !important; border-radius: 8px !important; display: flex !important; align-items: center !important; }   /* botões juntos: provador → 8px → Escolher lentes */
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
