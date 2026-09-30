@@ -2172,7 +2172,14 @@ const fd = new FormData();
             if (!lip || !prov || !lip.parentNode) return;
             if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
             if (!prov.classList.contains('q-pl-igual-lentes')) prov.classList.add('q-pl-igual-lentes');
+            // copia a altura REAL do botão do Lente Ideal (muda entre celular e computador)
+            var btnL = lip.querySelector('.btn-lente-ideal-injetado') || lip;
+            var h = Math.round(btnL.getBoundingClientRect().height);
+            if (h > 20 && prov.style.getPropertyValue('height') !== h + 'px') prov.style.setProperty('height', h + 'px', 'important');
+            var rad = getComputedStyle(btnL).borderRadius;
+            if (rad && prov.style.getPropertyValue('border-radius') !== rad) prov.style.setProperty('border-radius', rad, 'important');
         }
+        window.addEventListener('resize', function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } });
         new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
             .observe(document.documentElement, { childList: true, subtree: true });
         ajusta();
