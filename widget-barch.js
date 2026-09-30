@@ -2182,8 +2182,8 @@ const fd = new FormData();
             if (h > 20 && prov.style.getPropertyValue('height') !== h + 'px') prov.style.setProperty('height', h + 'px', 'important');
             var rad = getComputedStyle(btnL).borderRadius;
             if (rad && prov.style.getPropertyValue('border-radius') !== rad) prov.style.setProperty('border-radius', rad, 'important');
-            // mesma LETRA do "Escolher lentes e comprar" (o texto dele fica num <span> dentro do botão)
-            var tx = btnL.querySelector('span') || btnL, cs = getComputedStyle(tx);
+            // LETRA da loja: a mesma do botão "Comprar" do tema (Lucas: não a do app Lente Ideal)
+            var tx = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form') || btnL, cs = getComputedStyle(tx);
             [['font-family', cs.fontFamily], ['font-size', cs.fontSize], ['font-weight', cs.fontWeight], ['letter-spacing', cs.letterSpacing], ['text-transform', cs.textTransform]]
                 .forEach(function (kv) { if (kv[1] && prov.style.getPropertyValue(kv[0]) !== kv[1]) prov.style.setProperty(kv[0], kv[1], 'important'); });
         }
