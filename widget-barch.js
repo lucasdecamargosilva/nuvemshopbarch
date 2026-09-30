@@ -189,14 +189,21 @@
         /* ── Inline button ── */
         .q-btn-inline-provador {
             display: flex; align-items: center; justify-content: center; gap: 7px;
-            width: 100%; padding: 13px 16px;
+            width: 100%; padding: 13px 16px;   /* mesmo tamanho/estilo do "Escolher lentes e comprar" (.plb-lens-btn do lentes-barch.js) */
             background: transparent; color: var(--c-ink);
             border: 1.5px solid var(--c-accent); border-radius: 8px;
-            font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-transform: none;
+            font-family: inherit; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; text-transform: none; line-height: 1.2;
             cursor: pointer; transition: background 0.25s, color 0.25s;
             margin-bottom: 10px; box-sizing: border-box;
         }
         .q-btn-inline-provador:hover { background: var(--c-accent); color: #fff; }
+        /* Barch: ao lado do botão do app Lente Ideal ("Escolher lentes e comprar") o provador ganha a MESMA largura/altura dele */
+        .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: -14px 0 0 !important;   /* 10px abaixo do Comprar (ele tem margin-bottom 24px) */
+            border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
+        .q-pl-igual-lentes + .lip-btn-wrapper { margin-top: 8px !important; }
+        /* Barch: "Comprar" com a mesma altura/cantos do provador e do "Escolher lentes e comprar"; letra e cor do tema mantidas */
+        #product_form input.js-addtocart.js-prod-submit-form { height: 52px !important; line-height: 52px !important; padding-top: 0 !important; padding-bottom: 0 !important; border-radius: 8px !important; }   /* mesma altura dos outros; letra do tema mantida */
+        #product_form .form-quantity.form-quantity-product { height: 52px !important; border-radius: 8px !important; display: flex !important; align-items: center !important; }   /* botões juntos: provador → 8px → Escolher lentes */
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
@@ -569,7 +576,7 @@
             font-family: var(--font-body); font-size: 12px; color: var(--c-muted);
             margin-top: 4px; letter-spacing: .2px;
         }
-        .q-scarcity { display: none !important; /* escassez removida 30/09 (Lucas) */
+        .q-scarcity {
             margin-top: 12px; font-family: var(--font-body); font-size: 13px; font-weight: 700;
             color: var(--c-danger); letter-spacing: 1.5px; text-transform: uppercase;
             display: flex; align-items: center; justify-content: flex-start; gap: 6px;
@@ -2162,4 +2169,32 @@ const fd = new FormData();
     }
 
 
+    // Barch: quando o app Lente Ideal injeta "Escolher lentes e comprar" (largura total da linha),
+    // o provador vai pra MESMA linha, logo acima dele, com o mesmo tamanho.
+    (function () {
+        // o Lente Ideal só injeta o botão depois da 1ª interação do visitante → observa sem prazo
+        var agendado = false;
+        function ajusta() {
+            agendado = false;
+            var lip = document.querySelector('.lip-btn-wrapper');
+            var prov = document.querySelector('.q-btn-inline-provador');
+            if (!lip || !prov || !lip.parentNode) return;
+            if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
+            if (!prov.classList.contains('q-pl-igual-lentes')) prov.classList.add('q-pl-igual-lentes');
+            // copia a altura REAL do botão do Lente Ideal (muda entre celular e computador)
+            var btnL = lip.querySelector('.btn-lente-ideal-injetado') || lip;
+            var h = Math.round(btnL.getBoundingClientRect().height);
+            if (h > 20 && prov.style.getPropertyValue('height') !== h + 'px') prov.style.setProperty('height', h + 'px', 'important');
+            var rad = getComputedStyle(btnL).borderRadius;
+            if (rad && prov.style.getPropertyValue('border-radius') !== rad) prov.style.setProperty('border-radius', rad, 'important');
+            // LETRA da loja: a mesma do botão "Comprar" do tema (Lucas: não a do app Lente Ideal)
+            var tx = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form') || btnL, cs = getComputedStyle(tx);
+            [['font-family', cs.fontFamily], ['font-size', cs.fontSize], ['font-weight', cs.fontWeight], ['letter-spacing', cs.letterSpacing], ['text-transform', cs.textTransform]]
+                .forEach(function (kv) { if (kv[1] && prov.style.getPropertyValue(kv[0]) !== kv[1]) prov.style.setProperty(kv[0], kv[1], 'important'); });
+        }
+        window.addEventListener('resize', function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } });
+        new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
+            .observe(document.documentElement, { childList: true, subtree: true });
+        ajusta();
+    })();
 })();
