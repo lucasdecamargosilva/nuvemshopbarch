@@ -2239,7 +2239,12 @@ const fd = new FormData();
             '.pl-rl-wa { display: flex !important; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 8px; padding: 14px; border: 0; border-radius: 50px; background: #25D366 !important; color: #fff !important; font-family: inherit; font-size: 15px; font-weight: 600; cursor: pointer; text-transform: none; letter-spacing: 0; box-sizing: border-box; }' +
             '.pl-rl-wa:hover { background: #1ebe5b !important; }' +
             '.pl-rl-wa svg { width: 18px; height: 18px; flex-shrink: 0; }' +
-            '.pl-rl-retry { margin-top: 10px !important; font-size: 15px !important; text-transform: none !important; letter-spacing: 0 !important; }';
+            '.pl-rl-retry { margin-top: 10px !important; }' +
+            /* os 3 botões SEMPRE no mesmo formato (só a cor muda) */
+            '#q-btn-buy-now.pl-rl-buy, #pl-rl-wa.pl-rl-wa, .pl-rl-retry { display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; width: 100% !important; min-height: 50px !important; height: auto !important; padding: 12px 16px !important; box-sizing: border-box !important; border-radius: 50px !important; font-family: inherit !important; font-size: 15px !important; font-weight: 600 !important; line-height: 1.2 !important; text-transform: none !important; letter-spacing: 0 !important; text-decoration: none !important; box-shadow: none !important; }' +
+            '.pl-rl-retry { background: #fff !important; color: var(--c-ink, #111) !important; border: 1.5px solid var(--c-line, #d9d9d9) !important; }' +
+            '#q-btn-buy-now.pl-rl-buy, #pl-rl-wa.pl-rl-wa { border: 0 !important; }' +
+            '.pl-rl-retry i { font-size: 17px; }';
         document.head.appendChild(s);
     }
     // Preço à vista/PIX exibido na página (Tray "à vista", Nuvemshop/Bagy/Shopify "no Pix"/"com Pix").
@@ -2311,7 +2316,7 @@ const fd = new FormData();
         // ── botões
         if (!buy) return;
         buy.classList.add('pl-rl-buy');
-        if (/comprar agora|^\s*comprar\s*$/i.test(buy.textContent || '') && !buy.querySelector('*')) buy.textContent = 'Comprar no site';
+        if (/^\s*comprar\b/i.test(buy.textContent || '') && !buy.querySelector('*')) buy.textContent = 'Comprar';
         var anchor = buy;
         if (PL_WA && PL_WA.length >= 12 && vis(buy)) {
             var or = $('pl-rl-or'), wa = $('pl-rl-wa');
