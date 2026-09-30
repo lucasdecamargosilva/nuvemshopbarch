@@ -198,8 +198,9 @@
         }
         .q-btn-inline-provador:hover { background: var(--c-accent); color: #fff; }
         /* Barch: ao lado do botão do app Lente Ideal ("Escolher lentes e comprar") o provador ganha a MESMA largura/altura dele */
-        .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: 15px 0 0 !important;
+        .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: -14px 0 0 !important;   /* 10px abaixo do Comprar (ele tem margin-bottom 24px) */
             border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
+        .q-pl-igual-lentes + .lip-btn-wrapper { margin-top: 8px !important; }   /* botões juntos: provador → 8px → Escolher lentes */
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
