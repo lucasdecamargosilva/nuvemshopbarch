@@ -201,10 +201,9 @@
         .q-btn-inline-provador.q-pl-igual-lentes { width: 100% !important; height: 52px !important; padding: 0 18px !important; margin: -14px 0 0 !important;   /* 10px abaixo do Comprar (ele tem margin-bottom 24px) */
             border-radius: 8px !important; font-size: 12px !important; font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }
         .q-pl-igual-lentes + .lip-btn-wrapper { margin-top: 8px !important; }
-        /* Barch: "Comprar" com o mesmo desenho (letra, cantos) do provador e do "Escolher lentes e comprar"; tamanho e cor verde mantidos */
-        #product_form input.js-addtocart.js-prod-submit-form { border-radius: 8px !important; font-size: 12px !important;
-            font-weight: 700 !important; letter-spacing: 1px !important; text-transform: uppercase !important; }   /* tamanho (40px) do tema mantido */
-        #product_form .form-quantity.form-quantity-product { border-radius: 8px !important; }   /* botões juntos: provador → 8px → Escolher lentes */
+        /* Barch: "Comprar" com a mesma altura/cantos do provador e do "Escolher lentes e comprar"; letra e cor do tema mantidas */
+        #product_form input.js-addtocart.js-prod-submit-form { height: 52px !important; line-height: 52px !important; padding-top: 0 !important; padding-bottom: 0 !important; border-radius: 8px !important; }   /* mesma altura dos outros; letra do tema mantida */
+        #product_form .form-quantity.form-quantity-product { height: 52px !important; border-radius: 8px !important; display: flex !important; align-items: center !important; }   /* botões juntos: provador → 8px → Escolher lentes */
         .q-btn-inline-provador svg { width: 14px; height: 14px; flex-shrink: 0; }
 
         /* ── Modal overlay ── */
@@ -2187,10 +2186,6 @@ const fd = new FormData();
             var tx = btnL.querySelector('span') || btnL, cs = getComputedStyle(tx);
             [['font-family', cs.fontFamily], ['font-size', cs.fontSize], ['font-weight', cs.fontWeight], ['letter-spacing', cs.letterSpacing], ['text-transform', cs.textTransform]]
                 .forEach(function (kv) { if (kv[1] && prov.style.getPropertyValue(kv[0]) !== kv[1]) prov.style.setProperty(kv[0], kv[1], 'important'); });
-            // "Comprar" do tema: mesma letra também (tamanho do botão continua o do tema)
-            var buyB = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form');
-            if (buyB) [['font-family', cs.fontFamily], ['letter-spacing', cs.letterSpacing]]
-                .forEach(function (kv) { if (kv[1] && buyB.style.getPropertyValue(kv[0]) !== kv[1]) buyB.style.setProperty(kv[0], kv[1], 'important'); });
         }
         window.addEventListener('resize', function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } });
         new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
