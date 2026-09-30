@@ -2187,6 +2187,10 @@ const fd = new FormData();
             var tx = btnL.querySelector('span') || btnL, cs = getComputedStyle(tx);
             [['font-family', cs.fontFamily], ['font-size', cs.fontSize], ['font-weight', cs.fontWeight], ['letter-spacing', cs.letterSpacing], ['text-transform', cs.textTransform]]
                 .forEach(function (kv) { if (kv[1] && prov.style.getPropertyValue(kv[0]) !== kv[1]) prov.style.setProperty(kv[0], kv[1], 'important'); });
+            // "Comprar" do tema: mesma letra também (tamanho do botão continua o do tema)
+            var buyB = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form');
+            if (buyB) [['font-family', cs.fontFamily], ['letter-spacing', cs.letterSpacing]]
+                .forEach(function (kv) { if (kv[1] && buyB.style.getPropertyValue(kv[0]) !== kv[1]) buyB.style.setProperty(kv[0], kv[1], 'important'); });
         }
         window.addEventListener('resize', function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } });
         new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
