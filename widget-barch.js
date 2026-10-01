@@ -1227,7 +1227,21 @@
             return url;
         }
 
+            // ── PL variante: foto da COR selecionada (data-variants + selects da variação) ──
+    function plSelVarImg() {
+        try {
+            var pv = document.querySelector('.js-product-variants'); var c = pv && pv.closest('[data-variants]'); if (!c) return '';
+            var vs = JSON.parse(c.getAttribute('data-variants') || '[]'); if (!vs || vs.length < 2) return '';
+            var imgs = {}; vs.forEach(function (v) { if (v.image_url) imgs[v.image_url] = 1; }); if (Object.keys(imgs).length < 2) return '';
+            var sel = []; c.querySelectorAll('select.js-variation-option, select[name^="variation"]').forEach(function (s) { var m = String(s.name || '').match(/\[(\d)\]/); sel[m ? +m[1] : sel.length] = s.value; });
+            if (!sel.length) return '';
+            var v = vs.find(function (x) { return sel.every(function (val, i) { return val == null || String(x['option' + i] || '') === String(val); }); });
+            var u = v && v.image_url ? String(v.image_url) : ''; if (u.indexOf('//') === 0) u = 'https:' + u; return u;
+        } catch (e) { return ''; }
+    }
         function extractImages(limit) {
+            // cor escolhida pelo cliente vence a galeria (que mistura todas as cores)
+            { const _plv = plSelVarImg(); if (_plv) return [_plv]; }
             const containersSelectors ='.js-product-slide, .product-image-column, .js-swiper-product, [data-store^="product-image-"], .product__media-wrapper, .product-gallery__media, .product__media, .product-image-main, .product-media-container, [data-media-id], .product__media-item, .product-gallery, .product-single__media, .media-gallery, [data-component="product.gallery"], .swiper-slide:not(.swiper-slide-duplicate), .slider-wrapper';
             const possibleContainers = Array.from(document.querySelectorAll(containersSelectors));
             let imgEls = [];
