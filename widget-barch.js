@@ -1236,7 +1236,12 @@
             var sel = []; c.querySelectorAll('select.js-variation-option, select[name^="variation"]').forEach(function (s) { var m = String(s.name || '').match(/\[(\d)\]/); sel[m ? +m[1] : sel.length] = s.value; });
             if (!sel.length) return '';
             var v = vs.find(function (x) { return sel.every(function (val, i) { return val == null || String(x['option' + i] || '') === String(val); }); });
-            var u = v && v.image_url ? String(v.image_url) : ''; if (u.indexOf('//') === 0) u = 'https:' + u; return u;
+            var u = v && v.image_url ? String(v.image_url) : ''; if (u.indexOf('//') === 0) u = 'https:' + u;
+            // plVarNaGaleria: só vale se a foto da variante também está na galeria do produto. Variante que não é cor da armação
+            // (estojo, lente — Cicia 02/10) tem foto fora da galeria e mandava o ESTOJO como referência.
+            var st = function (x) { return String(x || '').split('?')[0].split('/').pop().replace(/-\d+-\d+\.(webp|jpe?g|png)$/i, ''); };
+            var plVarNaGaleria = [].some.call(document.querySelectorAll('.js-product-slide-img, .js-product-slide img'), function (im) { return st((im.getAttribute('data-srcset') || im.getAttribute('data-src') || im.getAttribute('src') || '').split(' ')[0]) === st(u); });
+            return plVarNaGaleria ? u : '';
         } catch (e) { return ''; }
     }
         function extractImages(limit) {
