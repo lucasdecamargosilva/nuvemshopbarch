@@ -59,15 +59,142 @@
     };
     var MULTI_NAME = { basico: 'Multifocal Básico', intermediario: 'Multifocal Intermediário', avancado: 'Multifocal Avançado' };
     var MULTI_SUB = { basico: '', intermediario: 'Escolha de acordo com o seu grau', avancado: 'Escolha de acordo com sua receita' };
-    var MULTI_RANGE = {
-        leve: 'Esférico (ESF): Miopia: até -7 e Hipermetropia: até +4,00<br>Cilíndrico (CIL) Astigmatismo: até -3,00<br>Adição (ADD): até +3,50',
-        alto: 'Esférico (ESF): Miopia: até -10 e Hipermetropia: até +6,00<br>Cilíndrico (CIL) Astigmatismo: até -5,00<br>Adição (ADD): até +4,50'
-    };
 
     function lens(id, variantId, nome, preco, prazo) {
         return { id:id, variantId:variantId, nome:nome, preco:preco, prazo:prazo, img:NO_PHOTO };
     }
 
+
+    /* ===== Configuração editável pela loja (09/10/2026) =====
+       Tudo acima e abaixo é o PADRÃO do fluxo. Se a loja salvou alterações no painel
+       "Configurar fluxo" (dashboard → Central de lentes), elas vêm da tabela lentes_fluxo_config
+       e sobrescrevem: lentes (nome, preço, prazo, IDs da Nuvemshop, ligada/desligada), textos,
+       ordem e quais opções aparecem. Sem config, sem rede ou erro → fluxo padrão, igual antes. */
+    var SUPA_URL = 'https://quantic-supabase.k5jwra.easypanel.host';
+    var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
+    var LOJA_DOMINIO = PREVIEW ? 'barcheyewear.com.br' : String(location.hostname || '').replace(/^www\./, '').toLowerCase();
+    var BOTAO_TEXTO = 'Escolher lentes e comprar';
+    var FLUXO_ATIVO = true;
+    // Textos: \n vira quebra de linha e **assim** vira negrito (o painel edita nesse formato).
+    var TXT = {
+        'need.titulo': 'Qual tipo de lente você procura?',
+        'need.sub': 'Receba o seu óculos em casa já pronto para usar',
+        'armacao.comum.desc': 'Usada para armações em acetato, metal, nylon\n+ até 5 dias úteis no prazo final',
+        'armacao.sem_aro.desc': 'Usada para armações sem aro ou parafusadas\n+ até 5 dias úteis no prazo final',
+        'mono.leve.faixa': 'Esférico: Miopia até -3 / Hipermetropia até +3\nCilíndrico: Astigmatismo até -2,00',
+        'mono.medio.faixa': 'Esférico: Miopia até -4 / Hipermetropia até +4\nCilíndrico: Astigmatismo até -2,00',
+        'mono.alto.faixa': 'Esférico: Miopia até -6 / Hipermetropia até +6\nCilíndrico: Astigmatismo até -4,00',
+        'mono.super.faixa': 'Esférico: Miopia até -10 / Hipermetropia até +8\nCilíndrico: Astigmatismo até -4,00',
+        'mono.astig.faixa': 'Esférico: Miopia até -3 / Hipermetropia até +3\nCilíndrico: Astigmatismo até -5,00',
+        'mono.trat.blue.desc': 'Proteção de Filtro Luz Azul UV e azul-violeta de telas\nReduz cansaço e ardência nos olhos',
+        'mono.trat.ar.desc': 'Bloqueia os reflexos indesejados\nVisão mais nítida e confortável',
+        'multi.basico.desc': '**OBRIGATÓRIO TER A MEDIDA DA DNP**\nAmplitude Visual: 6/10 · Visão dinâmica: 6/10 · Campo de Leitura: 7/10',
+        'multi.intermediario.desc': '**OBRIGATÓRIO TER A MEDIDA DA DNP**\nAmplitude Visual: 7/10 · Visão dinâmica: 7/10 · Campo de Leitura: 7/10',
+        'multi.avancado.desc': '**OBRIGATÓRIO TER A MEDIDA DA DNP**\nAmplitude Visual: 9/10 · Visão dinâmica: 9/10 · Campo de Leitura: 9/10',
+        'multi.faixa.leve': 'Esférico (ESF): Miopia: até -7 e Hipermetropia: até +4,00\nCilíndrico (CIL) Astigmatismo: até -3,00\nAdição (ADD): até +3,50',
+        'multi.faixa.alto': 'Esférico (ESF): Miopia: até -10 e Hipermetropia: até +6,00\nCilíndrico (CIL) Astigmatismo: até -5,00\nAdição (ADD): até +4,50',
+        'multi.trat.prime.desc': '10 camadas de proteção\nResistente a arranhões e manchas\n+ até 7 dias úteis no prazo final',
+        'multi.trat.sem_ar.desc': 'Lentes já possuem Filtro Azul',
+        'solar.faixa': 'Esférico (ESF): Miopia: até -6 e Hipermetropia: até +6,00\nCilíndrico (CIL) Astigmatismo: até -2,00\n+ até 5 dias úteis no prazo final',
+        'receita.sub': 'Escolha a melhor forma para você. Pulando essa etapa, te chamaremos no número de WhatsApp utilizado na compra',
+        'resultado.nota_sem_grau': 'Lente sem grau: não precisa de receita.',
+        'resultado.nota_pular': 'Depois da compra, a BARCH chama você no WhatsApp usado na compra para receber a receita.',
+        'resultado.nota_padrao': 'A BARCH confere sua receita antes da montagem.',
+        'resultado.botao': 'Comprar armação + lente'
+    };
+    var NEEDS = [
+        { key: 'descanso', titulo: 'Lentes de descanso: Filtro Azul (Sem Grau)', desc: 'MAIS Proteção e MENOS Cansaço Visual e dores de cabeça', ativo: true },
+        { key: 'simples', titulo: 'Visão simples: Monofocal', desc: 'Correção Visual para Perto OU Longe', ativo: true },
+        { key: 'multifocal', titulo: 'Multifocal', desc: 'Correção Visual para Perto E Longe', ativo: true },
+        { key: 'solar', titulo: 'Lentes de Sol com Grau', desc: 'Transforme qualquer óculos em solar com grau', ativo: true }
+    ];
+    var RECEITA = [
+        { key: 'foto', titulo: 'Enviar foto da receita', desc: 'Nós lemos e preenchemos os dados', ativo: true },
+        { key: 'digitar', titulo: 'Digitar os graus', desc: 'Preencha exatamente como está na receita', ativo: true },
+        { key: 'whatsapp', titulo: 'Falar no WhatsApp', desc: 'Tire suas dúvidas com a equipe da BARCH', ativo: true },
+        { key: 'pular', titulo: 'Pular esta etapa', desc: 'Envie a receita depois: chamamos você no WhatsApp da compra', ativo: true }
+    ];
+    var CORES_SOLAR = ['Marrom', 'Preto'];
+
+    function fmt(text) {
+        var html = String(text == null ? '' : text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        return html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\r?\n/g, '<br>');
+    }
+    function T(key) { return fmt(TXT[key] == null ? '' : TXT[key]); }
+    // 'mono.leve.ar' → MONO.leve.ar ; 'descanso.comum' → DESCANSO.comum …
+    function lensByKey(key) {
+        var parts = String(key || '').split('.'), root = { descanso: DESCANSO, solar: SOLAR, mono: MONO, multi: MULTI }[parts.shift()];
+        for (var i = 0; root && i < parts.length; i++) root = root[parts[i]];
+        return root && root.nome != null ? root : null;
+    }
+    function isOn(item) { return !!item && item.ativo !== false; }
+    function anyOn(node) {
+        if (!node) return false;
+        if (node.nome != null) return isOn(node);
+        for (var k in node) if (Object.prototype.hasOwnProperty.call(node, k) && anyOn(node[k])) return true;
+        return false;
+    }
+    function mergeList(base, saved) {
+        if (!Array.isArray(saved) || !saved.length) return base;
+        var byKey = {}; base.forEach(function (b) { byKey[b.key] = b; });
+        var out = [];
+        saved.forEach(function (s) {
+            var b = s && byKey[s.key]; if (!b) return;
+            out.push({ key: b.key, titulo: String(s.titulo || '').trim() || b.titulo, desc: s.desc != null ? String(s.desc) : b.desc, ativo: s.ativo !== false });
+            delete byKey[b.key];
+        });
+        base.forEach(function (b) { if (byKey[b.key]) out.push(b); });   // opção nova no código e ainda não salva
+        return out;
+    }
+    function applyConfig(cfg) {
+        if (!cfg || typeof cfg !== 'object') return;
+        var g = cfg.geral || {};
+        if (g.whatsapp && String(g.whatsapp).replace(/\D/g, '').length >= 12) WHATSAPP_LOJA = String(g.whatsapp).replace(/\D/g, '');
+        if (g.botao_texto && String(g.botao_texto).trim()) BOTAO_TEXTO = String(g.botao_texto).trim();
+        if (g.ativo === false) FLUXO_ATIVO = false;
+        (Array.isArray(cfg.lentes) ? cfg.lentes : []).forEach(function (s) {
+            var item = s && lensByKey(s.key); if (!item) return;
+            if (String(s.nome || '').trim()) item.nome = String(s.nome).trim();
+            var p = Number(s.preco); if (isFinite(p) && p > 0) item.preco = p;
+            var d = parseInt(s.prazo, 10); if (d > 0 && d < 120) item.prazo = d;
+            if (/^\d+$/.test(String(s.produto_id || ''))) item.id = String(s.produto_id);
+            if (/^\d+$/.test(String(s.variante_id || ''))) item.variantId = String(s.variante_id);
+            item.ativo = s.ativo !== false;
+        });
+        (Array.isArray(cfg.textos) ? cfg.textos : []).forEach(function (t) {
+            if (t && Object.prototype.hasOwnProperty.call(TXT, t.key) && String(t.valor || '').trim()) TXT[t.key] = String(t.valor);
+        });
+        NEEDS = mergeList(NEEDS, cfg.necessidades);
+        RECEITA = mergeList(RECEITA, cfg.receita);
+        if (Array.isArray(cfg.cores_solar)) {
+            var cores = cfg.cores_solar.map(function (c) { return String(c || '').trim(); }).filter(Boolean);
+            if (cores.length) CORES_SOLAR = cores;
+        }
+    }
+    function loadConfig() {
+        var CACHE = 'plb_lentes_cfg_' + LOJA_DOMINIO;
+        if (!PREVIEW) {   // na loja: 5 min de cache pra não buscar a cada página
+            try { var c = JSON.parse(sessionStorage.getItem(CACHE) || 'null'); if (c && Date.now() - c.t < 300000) return Promise.resolve(c.cfg); } catch (_) {}
+        }
+        if (!window.fetch) return Promise.resolve(null);
+        var timeout = new Promise(function (resolve) { setTimeout(function () { resolve(null); }, 3500); });
+        var req = fetch(SUPA_URL + '/rest/v1/lentes_fluxo_config?select=config&dominio=eq.' + encodeURIComponent(LOJA_DOMINIO), {
+            headers: { apikey: SUPA_ANON, Authorization: 'Bearer ' + SUPA_ANON }, cache: 'no-store'
+        }).then(function (r) { return r.ok ? r.json() : null; }).then(function (rows) {
+            var cfg = rows && rows[0] && rows[0].config || null;
+            try { sessionStorage.setItem(CACHE, JSON.stringify({ t: Date.now(), cfg: cfg })); } catch (_) {}
+            return cfg;
+        }).catch(function () { return null; });
+        return Promise.race([req, timeout]);
+    }
+
+    loadConfig().then(function (cfg) {
+        try { applyConfig(cfg); } catch (e) { try { console.warn('[lentes] config ignorada:', e); } catch (_) {} }
+        if (!FLUXO_ATIVO && !PREVIEW) return;   // loja desligou o fluxo no painel
+        boot();
+    });
+
+    function boot() {
     var state = {};
     var navStack = [];
     var $ = function (selector) { return document.querySelector(selector); };
@@ -100,11 +227,12 @@
         return { odEsf:getValue('odEsf'),odCil:getValue('odCil'),odEixo:getValue('odEixo'),oeEsf:getValue('oeEsf'),oeCil:getValue('oeCil'),oeEixo:getValue('oeEixo'),adicao:state.need==='multifocal'?getValue('adicao'):null };
     }
     function chosenLens() {
-        if(state.need==='descanso') return DESCANSO[state.frameType];
-        if(state.need==='solar') return SOLAR[state.frameType];
-        if(state.need==='simples') return MONO[state.grau] && MONO[state.grau][state.trat];
-        if(state.need==='multifocal') return MULTI[state.model] && MULTI[state.model][state.grau] && MULTI[state.model][state.grau][state.trat];
-        return null;
+        var item=null;
+        if(state.need==='descanso') item=DESCANSO[state.frameType];
+        if(state.need==='solar') item=SOLAR[state.frameType];
+        if(state.need==='simples') item=MONO[state.grau] && MONO[state.grau][state.trat];
+        if(state.need==='multifocal') item=MULTI[state.model] && MULTI[state.model][state.grau] && MULTI[state.model][state.grau][state.trat];
+        return isOn(item) ? item : null;   // lente desligada no painel = combinação indisponível
     }
     function choicesSummary() {
         var rows=[];
@@ -152,49 +280,43 @@
     var overlay=document.createElement('div');
     overlay.id='plb-lens-modal'; overlay.className='plb-overlay';
     overlay.innerHTML='<div class="plb-card" role="dialog" aria-modal="true" aria-label="Escolher lentes"><button class="plb-close" type="button" aria-label="Fechar">&times;</button><div class="plb-head"><b>Escolher lentes</b><img src="https://acdn-us.mitiendanube.com/stores/004/982/616/themes/common/logo-6628445411204466754-1777675117-e2457ea4d103baf41ed0b9598683ef981777675117-480-0.webp" alt="BARCH"></div><div class="plb-body">'+
-      step('need','Qual tipo de lente você procura?','Receba o seu óculos em casa já pronto para usar',
-        opt('data-need="descanso"','Lentes de descanso: Filtro Azul (Sem Grau)','MAIS Proteção e MENOS Cansaço Visual e dores de cabeça')+
-        opt('data-need="simples"','Visão simples: Monofocal','Correção Visual para Perto OU Longe')+
-        opt('data-need="multifocal"','Multifocal','Correção Visual para Perto E Longe')+
-        opt('data-need="solar"','Lentes de Sol com Grau','Transforme qualquer óculos em solar com grau'))+
+      step('need',T('need.titulo'),T('need.sub'),
+        NEEDS.filter(isOn).map(function(n){ return opt('data-need="'+esc(n.key)+'"',esc(n.titulo),fmt(n.desc)); }).join(''))+
       step('desc-frame','Lentes Filtro Azul','Escolha de acordo com a armação selecionada',
-        opt('data-frame="comum"','Armação Comum','Usada para armações em acetato, metal, nylon<br>+ até 5 dias úteis no prazo final',price(brl(DESCANSO.comum.preco)))+
-        opt('data-frame="sem_aro"','Armação Sem Aro','Usada para armações sem aro ou parafusadas<br>+ até 5 dias úteis no prazo final',price(brl(DESCANSO.sem_aro.preco)))+back())+
+        opt('data-frame="comum"','Armação Comum',T('armacao.comum.desc'),price(brl(DESCANSO.comum.preco)))+
+        opt('data-frame="sem_aro"','Armação Sem Aro',T('armacao.sem_aro.desc'),price(brl(DESCANSO.sem_aro.preco)))+back())+
       step('mono-dist','Monofocal pré',null,
         opt('data-dist="perto"','Perto','')+opt('data-dist="longe"','Longe','')+back())+
       step('mono-grau','Como é o seu grau? Lentes Monofocais','Escolha de acordo com sua receita',
-        opt('data-grau="leve"','Grau Leve','Esférico: Miopia até -3 / Hipermetropia até +3<br>Cilíndrico: Astigmatismo até -2,00',price(brl(MONO.leve.ar.preco)))+
-        opt('data-grau="medio"','Grau Médio','Esférico: Miopia até -4 / Hipermetropia até +4<br>Cilíndrico: Astigmatismo até -2,00',price(brl(MONO.medio.ar.preco)))+
-        opt('data-grau="alto"','Grau Alto','Esférico: Miopia até -6 / Hipermetropia até +6<br>Cilíndrico: Astigmatismo até -4,00',price(brl(MONO.alto.ar.preco)))+
-        opt('data-grau="super"','Grau Super Alto','Esférico: Miopia até -10 / Hipermetropia até +8<br>Cilíndrico: Astigmatismo até -4,00',price(brl(MONO.super.ar.preco)))+
-        opt('data-grau="astig"','Astigmatismo Alto','Esférico: Miopia até -3 / Hipermetropia até +3<br>Cilíndrico: Astigmatismo até -5,00',price(brl(MONO.astig.ar.preco)))+back())+
+        opt('data-grau="leve"','Grau Leve',T('mono.leve.faixa'),price(brl(MONO.leve.ar.preco)))+
+        opt('data-grau="medio"','Grau Médio',T('mono.medio.faixa'),price(brl(MONO.medio.ar.preco)))+
+        opt('data-grau="alto"','Grau Alto',T('mono.alto.faixa'),price(brl(MONO.alto.ar.preco)))+
+        opt('data-grau="super"','Grau Super Alto',T('mono.super.faixa'),price(brl(MONO.super.ar.preco)))+
+        opt('data-grau="astig"','Astigmatismo Alto',T('mono.astig.faixa'),price(brl(MONO.astig.ar.preco)))+back())+
       step('mono-trat','Qual tratamento extra você deseja?','Opcional para maior conforto.',
-        opt('data-trat="blue"','Antirreflexo e Filtro Luz Azul','Proteção de Filtro Luz Azul UV e azul-violeta de telas<br>Reduz cansaço e ardência nos olhos',tag('Mais Vendido')+' '+price('+'+brl(MONO.leve.blue.preco-MONO.leve.ar.preco)))+
-        opt('data-trat="ar"','Apenas proteção Antirreflexo','Bloqueia os reflexos indesejados<br>Visão mais nítida e confortável',tag('Já incluso'))+back())+
+        opt('data-trat="blue"','Antirreflexo e Filtro Luz Azul',T('mono.trat.blue.desc'),tag('Mais Vendido')+' '+price('+'+brl(MONO.leve.blue.preco-MONO.leve.ar.preco)))+
+        opt('data-trat="ar"','Apenas proteção Antirreflexo',T('mono.trat.ar.desc'),tag('Já incluso'))+back())+
       step('multi-model','Tipo de Multifocais','Escolha qual você deseja:',
-        opt('data-model="basico"','Modelo Básico','<b>OBRIGATÓRIO TER A MEDIDA DA DNP</b><br>Amplitude Visual: 6/10 · Visão dinâmica: 6/10 · Campo de Leitura: 7/10',price('a partir de '+brl(MULTI.basico.leve.sem_ar.preco)))+
-        opt('data-model="intermediario"','Modelo Intermediário','<b>OBRIGATÓRIO TER A MEDIDA DA DNP</b><br>Amplitude Visual: 7/10 · Visão dinâmica: 7/10 · Campo de Leitura: 7/10',price('a partir de '+brl(MULTI.intermediario.leve.sem_ar.preco)))+
-        opt('data-model="avancado"','Modelo Avançado','<b>OBRIGATÓRIO TER A MEDIDA DA DNP</b><br>Amplitude Visual: 9/10 · Visão dinâmica: 9/10 · Campo de Leitura: 9/10',price('a partir de '+brl(MULTI.avancado.leve.sem_ar.preco)))+back())+
+        opt('data-model="basico"','Modelo Básico',T('multi.basico.desc'),price('a partir de '+brl(MULTI.basico.leve.sem_ar.preco)))+
+        opt('data-model="intermediario"','Modelo Intermediário',T('multi.intermediario.desc'),price('a partir de '+brl(MULTI.intermediario.leve.sem_ar.preco)))+
+        opt('data-model="avancado"','Modelo Avançado',T('multi.avancado.desc'),price('a partir de '+brl(MULTI.avancado.leve.sem_ar.preco)))+back())+
       step('multi-grau','Multifocal','','<div id="plb-multi-grau"></div>'+back())+
       step('multi-trat','Tratamento Antirreflexo',null,
-        opt('data-trat="prime"','Antirreflexo PRIME','10 camadas de proteção<br>Resistente a arranhões e manchas<br>+ até 7 dias úteis no prazo final',price('+'+brl(AR_PRIME_DELTA)))+
-        opt('data-trat="sem_ar"','Sem Antirreflexo','Lentes já possuem Filtro Azul',tag('Sem custo'))+back())+
+        opt('data-trat="prime"','Antirreflexo PRIME',T('multi.trat.prime.desc'),price('+'+brl(AR_PRIME_DELTA)))+
+        opt('data-trat="sem_ar"','Sem Antirreflexo',T('multi.trat.sem_ar.desc'),tag('Sem custo'))+back())+
       step('sun-grau','Lentes de Sol',null,
-        opt('data-sungrau="leve"','Grau leve a médio','Esférico (ESF): Miopia: até -6 e Hipermetropia: até +6,00<br>Cilíndrico (CIL) Astigmatismo: até -2,00<br>+ até 5 dias úteis no prazo final',price('a partir de '+brl(SOLAR.comum.preco)))+back())+
+        opt('data-sungrau="leve"','Grau leve a médio',T('solar.faixa'),price('a partir de '+brl(SOLAR.comum.preco)))+back())+
       step('sun-frame','Tipos de Lentes Solar','Escolha de acordo com o óculos que deseja transformar em sol ou sol com grau',
-        opt('data-frame="comum"','Armação Comum','Usada para armações em acetato, metal, nylon<br>+ até 5 dias úteis no prazo final',tag('Sem custo'))+
-        opt('data-frame="sem_aro"','Armação Sem Aro','Usada para armações sem aro ou parafusadas<br>+ até 5 dias úteis no prazo final',price('+'+brl(SUN_SEM_ARO_DELTA)))+back())+
+        opt('data-frame="comum"','Armação Comum',T('armacao.comum.desc'),tag('Sem custo'))+
+        opt('data-frame="sem_aro"','Armação Sem Aro',T('armacao.sem_aro.desc'),price('+'+brl(SUN_SEM_ARO_DELTA)))+back())+
       step('sun-color','Cor lentes solares','Escolha a cor desejada',
-        '<div class="plb-colors">'+opt('data-color="Marrom"','Marrom','')+opt('data-color="Preto"','Preto','')+'</div>'+back())+
-      step('recipe','Como deseja enviar sua receita?','Escolha a melhor forma para você. Pulando essa etapa, te chamaremos no número de WhatsApp utilizado na compra',
-        opt('data-recipe="foto"','Enviar foto da receita','Nós lemos e preenchemos os dados')+
-        opt('data-recipe="digitar"','Digitar os graus','Preencha exatamente como está na receita')+
-        opt('data-recipe="whatsapp"','Falar no WhatsApp','Tire suas dúvidas com a equipe da BARCH')+
-        opt('data-recipe="pular"','Pular esta etapa','Envie a receita depois: chamamos você no WhatsApp da compra')+
+        '<div class="plb-colors">'+CORES_SOLAR.map(function(c){ return opt('data-color="'+esc(c)+'"',esc(c),''); }).join('')+'</div>'+back())+
+      step('recipe','Como deseja enviar sua receita?',T('receita.sub'),
+        RECEITA.filter(isOn).map(function(r){ return opt('data-recipe="'+esc(r.key)+'"',esc(r.titulo),fmt(r.desc)); }).join('')+
         '<input type="file" id="plb-file" accept="image/*,application/pdf" style="display:none">'+back())+
       step('loading','',null,'<div class="plb-loading"><div class="plb-spinner"></div><b>Lendo sua receita…</b>A leitura pode levar alguns segundos. Confira os números antes de continuar.</div>')+
       step('form','Confira sua receita',null,'<div class="plb-note" id="plb-read-note" style="display:none"></div><div class="plb-eyes">'+EYE('od')+EYE('oe')+'</div><div class="plb-field" id="plb-add-wrap"><label>Adição (grau de perto)</label><select data-r="adicao"></select></div><button type="button" class="plb-primary" id="plb-form-next">Continuar</button>'+back())+
-      step('result','Sua lente',null,'<div id="plb-result"></div><button type="button" class="plb-primary" id="plb-buy-both">Comprar armação + lente</button><button type="button" class="plb-back" data-back="1">revisar escolhas</button>')+
+      step('result','Sua lente',null,'<div id="plb-result"></div><button type="button" class="plb-primary" id="plb-buy-both">'+T('resultado.botao')+'</button><button type="button" class="plb-back" data-back="1">revisar escolhas</button>')+
       step('cart','Carrinho de demonstração',null,'<div class="plb-note">Nenhum produto foi adicionado à loja.</div><div class="plb-result" id="plb-preview-cart"></div><button type="button" class="plb-back" data-back="1">Voltar à indicação</button>')+
       '</div></div>';
     document.body.appendChild(overlay);
@@ -217,7 +339,28 @@
         if(!noPush&&current&&current!==name&&current!=='loading') navStack.push(current);
         $$('.plb-step').forEach(function(item){item.classList.toggle('on',item.dataset.step===name);});
         paintProgress(name);
+        refreshAvail(name);
         var body=$('.plb-body'); if(body)body.scrollTop=0;
+    }
+    // Esconde o que a loja desligou no painel (lente desligada → a opção que leva só a ela some).
+    function setVis(stepName, attr, test) {
+        $$('.plb-step[data-step="'+stepName+'"] ['+attr+']').forEach(function(b){ b.style.display=test(b.getAttribute(attr))?'':'none'; });
+    }
+    function refreshAvail(name) {
+        var tree={descanso:DESCANSO,simples:MONO,multifocal:MULTI,solar:SOLAR};
+        if(name==='need') setVis(name,'data-need',function(k){return anyOn(tree[k]);});
+        if(name==='desc-frame') setVis(name,'data-frame',function(k){return isOn(DESCANSO[k]);});
+        if(name==='sun-frame') setVis(name,'data-frame',function(k){return isOn(SOLAR[k]);});
+        if(name==='mono-grau') setVis(name,'data-grau',function(k){return anyOn(MONO[k]);});
+        if(name==='multi-model') setVis(name,'data-model',function(k){return anyOn(MULTI[k]);});
+        if(name==='mono-trat'){
+            var g=MONO[state.grau]||{}; setVis(name,'data-trat',function(k){return isOn(g[k]);});
+            var p=$('.plb-step[data-step="mono-trat"] [data-trat="blue"] .plb-p'); if(p&&g.blue&&g.ar)p.textContent='+'+brl(g.blue.preco-g.ar.preco);
+        }
+        if(name==='multi-trat'){
+            var m=(MULTI[state.model]||{})[state.grau]||{}; setVis(name,'data-trat',function(k){return isOn(m[k]);});
+            var q=$('.plb-step[data-step="multi-trat"] [data-trat="prime"] .plb-p'); if(q&&m.prime&&m.sem_ar)q.textContent='+'+brl(m.prime.preco-m.sem_ar.preco);
+        }
     }
     function goBack() { var prev=navStack.pop(); if(prev) show(prev,true); }
     function open() {
@@ -247,15 +390,15 @@
         st.querySelector('[data-label]').textContent=MULTI_NAME[m];
         var sub=st.querySelector('[data-sub]'); sub.textContent=MULTI_SUB[m]; sub.style.display=MULTI_SUB[m]?'block':'none';
         $('#plb-multi-grau').innerHTML=
-            opt('data-grau="leve"','Grau Leve a Médio',MULTI_RANGE.leve+'<br>+ até 5 dias úteis no prazo final',price(brl(g.leve.sem_ar.preco)))+
-            opt('data-grau="alto"','Grau Alto',MULTI_RANGE.alto+'<br>+ até 5 dias úteis no prazo final',price(brl(g.alto.sem_ar.preco)));
+            (anyOn(g.leve)?opt('data-grau="leve"','Grau Leve a Médio',T('multi.faixa.leve')+'<br>+ até 5 dias úteis no prazo final',price(brl(g.leve.sem_ar.preco))):'')+
+            (anyOn(g.alto)?opt('data-grau="alto"','Grau Alto',T('multi.faixa.alto')+'<br>+ até 5 dias úteis no prazo final',price(brl(g.alto.sem_ar.preco))):'');
         show('multi-grau');
     }
     function renderResult() {
         var item=chosenLens(),box=$('#plb-result');state.lens=item;
         if(!item){box.innerHTML='<div class="plb-why">Não encontramos essa combinação. Volte e revise as escolhas.</div>';show('result');return;}
         var extra=choicesSummary();
-        var recipeNote=state.need==='descanso'?'Lente sem grau: não precisa de receita.':(state.recipeMode==='pular'?'Depois da compra, a BARCH chama você no WhatsApp usado na compra para receber a receita.':'A BARCH confere sua receita antes da montagem.');
+        var recipeNote=TXT[state.need==='descanso'?'resultado.nota_sem_grau':(state.recipeMode==='pular'?'resultado.nota_pular':'resultado.nota_padrao')];
         box.innerHTML='<div class="plb-result">'+(item.img?'<img src="'+item.img+'" alt="">':'')+'<h3>'+esc(item.nome)+'</h3><small>Produção em até '+item.prazo+' dias úteis</small><div class="plb-price">'+brl(item.preco)+'</div>'+(extra.length?'<ul class="plb-list">'+extra.map(function(r){return '<li>'+esc(r)+'</li>';}).join('')+'</ul>':'')+'<div class="plb-note" style="margin:11px 0 0">'+esc(recipeNote)+'</div></div>';
         show('result');
         track('recomendou',{lente:item.nome,preco:item.preco,necessidade:state.need,armacao:state.frameType,distancia:state.dist,grau:state.grau,modelo:state.model,tratamento:state.trat,cor:state.color,receita_modo:state.recipeMode,receita:state.prescription});
@@ -292,6 +435,7 @@
             if(d.recipe==='pular'){state.prescription=null;renderResult();return;}}
     });
 
-    function insertButton() { var form=getProductForm(),buy=form&&form.querySelector('.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');if(!buy||document.querySelector('.plb-lens-btn'))return !!buy;var button=document.createElement('button');button.type='button';button.className='plb-lens-btn';button.textContent='Escolher lentes e comprar';button.addEventListener('click',function(event){event.preventDefault();open();});var tryOn=document.querySelector('.q-btn-inline-provador');var anchor=tryOn||buy;anchor.parentNode.insertBefore(button,anchor.nextSibling);return true; }
+    function insertButton() { var form=getProductForm(),buy=form&&form.querySelector('.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');if(!buy||document.querySelector('.plb-lens-btn'))return !!buy;var button=document.createElement('button');button.type='button';button.className='plb-lens-btn';button.textContent=BOTAO_TEXTO;button.addEventListener('click',function(event){event.preventDefault();open();});var tryOn=document.querySelector('.q-btn-inline-provador');var anchor=tryOn||buy;anchor.parentNode.insertBefore(button,anchor.nextSibling);return true; }
     if(!insertButton()){var attempts=0,timer=setInterval(function(){if(insertButton()||++attempts>40)clearInterval(timer);},300);}
+    }
 })();
