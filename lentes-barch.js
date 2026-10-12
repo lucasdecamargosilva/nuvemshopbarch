@@ -281,6 +281,40 @@
         fonte: ['.plb-card', '.plb-card *', '.plb-lens-btn']
     };
 
+    // Prévia do painel (rascunho): arrastar as opções da 1ª tela na própria prévia; a nova ordem volta pro painel.
+    function arrastavel(raiz, attr) {
+        if (!PREVIEW || !window.__PL_LENTES_CFG_OVERRIDE || window.parent === window) return;
+        var r = typeof raiz === 'string' ? document.querySelector(raiz) : raiz;
+        if (!r || r.__pllcDnd) return;
+        r.__pllcDnd = true;
+        if (!document.getElementById('pllc-dnd-css')) {
+            var st = document.createElement('style'); st.id = 'pllc-dnd-css';
+            st.textContent = '[data-pllc-arrasta]{cursor:grab!important;position:relative}[data-pllc-arrasta]:hover{outline:2px dashed #630ed4;outline-offset:2px}' +
+                '[data-pllc-arrasta].pllc-arrastando{opacity:.4}[data-pllc-arrasta].pllc-alvo{outline:2px solid #630ed4;outline-offset:2px}' +
+                '.pllc-dica{display:block;text-align:center;font:600 11px/1.4 system-ui,sans-serif;color:#630ed4;background:#f1ebfb;border-radius:8px;padding:6px 8px;margin:0 0 10px}';
+            (document.head || document.documentElement).appendChild(st);
+        }
+        var btns = [].slice.call(r.querySelectorAll('[' + attr + ']'));
+        if (!btns.length) return;
+        var dica = document.createElement('span'); dica.className = 'pllc-dica'; dica.textContent = '↕ Prévia: arraste as opções para mudar a ordem';
+        btns[0].parentNode.insertBefore(dica, btns[0]);
+        var arrastado = null;
+        btns.forEach(function (b) {
+            b.setAttribute('draggable', 'true'); b.setAttribute('data-pllc-arrasta', '1');
+            b.addEventListener('dragstart', function (e) { arrastado = b; b.classList.add('pllc-arrastando'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', b.getAttribute(attr)); } catch (x) {} });
+            b.addEventListener('dragend', function () { b.classList.remove('pllc-arrastando'); btns.forEach(function (x) { x.classList.remove('pllc-alvo'); }); arrastado = null; });
+            b.addEventListener('dragover', function (e) { if (!arrastado || arrastado === b) return; e.preventDefault(); btns.forEach(function (x) { x.classList.toggle('pllc-alvo', x === b); }); });
+            b.addEventListener('drop', function (e) {
+                if (!arrastado || arrastado === b) return; e.preventDefault();
+                var lista = [].slice.call(r.querySelectorAll('[' + attr + ']'));
+                var de = lista.indexOf(arrastado), para = lista.indexOf(b);
+                b.parentNode.insertBefore(arrastado, de < para ? b.nextSibling : b);
+                var ordem = [].slice.call(r.querySelectorAll('[' + attr + ']')).map(function (x) { return x.getAttribute(attr); });
+                try { window.parent.postMessage({ type: 'pl-lentes-ordem', lista: 'necessidades', ordem: ordem }, '*'); } catch (x) {}
+            });
+        });
+    }
+
     function boot() {
     var state = {};
     var navStack = [];
@@ -424,6 +458,7 @@
       step('cart','Carrinho de demonstração',null,'<div class="plb-note">Nenhum produto foi adicionado à loja.</div><div class="plb-result" id="plb-preview-cart"></div><button type="button" class="plb-back" data-back="1">Voltar à indicação</button>')+
       '</div></div>';
     document.body.appendChild(overlay);
+    arrastavel(overlay.querySelector('[data-step="need"]'), 'data-need');
 
     // Barra de progresso: quantas telas o caminho escolhido tem até a lente.
     // Sequência do caminho escolhido, conforme as etapas ligadas e a posição da receita.
