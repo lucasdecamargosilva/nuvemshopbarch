@@ -97,6 +97,7 @@
         'multi.trat.sem_ar.desc': 'Lentes já possuem Filtro Azul',
         'solar.faixa': 'Esférico (ESF): Miopia: até -6 e Hipermetropia: até +6,00\nCilíndrico (CIL) Astigmatismo: até -2,00\n+ até 5 dias úteis no prazo final',
         'receita.sub': 'Escolha a melhor forma para você. Pulando essa etapa, te chamaremos no número de WhatsApp utilizado na compra',
+        'receita.sub_inicio': 'Com a sua receita a gente já encontra a lente certa para o seu grau. Se preferir, pule e envie depois.',
         'resultado.nota_sem_grau': 'Lente sem grau: não precisa de receita.',
         'resultado.nota_pular': 'Depois da compra, a BARCH chama você no WhatsApp usado na compra para receber a receita.',
         'resultado.nota_padrao': 'A BARCH confere sua receita antes da montagem.',
@@ -116,6 +117,22 @@
     ];
     var CORES_SOLAR = ['Marrom', 'Preto'];
     var TEMA = null;   // cores do painel: { botao, botao_texto, destaque, fundo_opcao, borda } em #hex
+    /* Etapas editáveis (12/10/2026): a loja desliga etapas e escolhe onde a receita entra.
+       Etapa desligada usa um padrão (tratamento) ou fica "a combinar"; receita desligada = enviar depois.
+       Com a receita no início, o grau sai da receita (FAIXAS_GRAU) e a pergunta de grau é pulada. */
+    var ETAPAS = {
+        receita: { ativo: true, posicao: 'final' },          // posicao: 'inicio' (logo após o tipo de lente) | 'final'
+        distancia: { ativo: true },                          // perto / longe (monofocal)
+        tratamento_mono: { ativo: true, padrao: 'ar' },      // padrao: 'ar' | 'blue'
+        tratamento_multi: { ativo: true, padrao: 'sem_ar' }, // padrao: 'sem_ar' | 'prime'
+        grau_solar: { ativo: true },
+        cor_solar: { ativo: true }
+    };
+    // [grau, miopia até -X, hipermetropia até +Y, astigmatismo até -Z, adição até +W] — as mesmas faixas dos textos das opções
+    var FAIXAS_GRAU = {
+        mono: [['leve', 3, 3, 2], ['medio', 4, 4, 2], ['alto', 6, 6, 4], ['super', 10, 8, 4], ['astig', 3, 3, 5]],
+        multi: [['leve', 7, 4, 3, 3.5], ['alto', 10, 6, 5, 4.5]]
+    };
 
     function fmt(text) {
         var html = String(text == null ? '' : text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -168,6 +185,15 @@
         NEEDS = mergeList(NEEDS, cfg.necessidades);
         RECEITA = mergeList(RECEITA, cfg.receita);
         if (cfg.tema && typeof cfg.tema === 'object') TEMA = cfg.tema;
+        if (cfg.etapas && typeof cfg.etapas === 'object') {
+            Object.keys(ETAPAS).forEach(function (k) {
+                var e = cfg.etapas[k]; if (!e || typeof e !== 'object') return;
+                if (typeof e.ativo === 'boolean') ETAPAS[k].ativo = e.ativo;
+                if (k === 'receita' && (e.posicao === 'inicio' || e.posicao === 'final')) ETAPAS.receita.posicao = e.posicao;
+                if (k === 'tratamento_mono' && (e.padrao === 'ar' || e.padrao === 'blue')) ETAPAS[k].padrao = e.padrao;
+                if (k === 'tratamento_multi' && (e.padrao === 'sem_ar' || e.padrao === 'prime')) ETAPAS[k].padrao = e.padrao;
+            });
+        }
         if (Array.isArray(cfg.cores_solar)) {
             var cores = cfg.cores_solar.map(function (c) { return String(c || '').trim(); }).filter(Boolean);
             if (cores.length) CORES_SOLAR = cores;
@@ -240,8 +266,10 @@
     }
     function choicesSummary() {
         var rows=[];
-        if(state.need==='simples'){ rows.push(state.dist==='perto'?'Perto':'Longe'); }
+        if(state.need==='simples'&&state.dist){ rows.push(state.dist==='perto'?'Perto':'Longe'); }
+        if(state.grauAuto) rows.push('Grau identificado pela sua receita');
         if(state.need==='solar'&&state.color) rows.push('Cor: '+state.color);
+        if(state.need==='solar'&&!state.color&&!etapaOn('cor_solar')) rows.push('Cor: a combinar com a BARCH pelo WhatsApp');
         if(state.recipeMode==='pular') rows.push('Receita: enviar depois (a BARCH chama no WhatsApp da compra)');
         else if(state.recipeMode==='digitar'||state.recipeMode==='foto') rows.push('Receita: informada');
         return rows;
@@ -338,13 +366,50 @@
     document.body.appendChild(overlay);
 
     // Barra de progresso: quantas telas o caminho escolhido tem até a lente.
-    function pathFor() {
-        if(state.need==='descanso') return ['need','desc-frame','result'];
-        if(state.need==='simples') return ['need','mono-dist','mono-grau','mono-trat','recipe','result'];
-        if(state.need==='multifocal') return ['need','multi-model','multi-grau','multi-trat','recipe','result'];
-        if(state.need==='solar') return ['need','sun-grau','sun-frame','sun-color','recipe','result'];
-        return ['need','x','x','x','recipe','result'];
+    // Sequência do caminho escolhido, conforme as etapas ligadas e a posição da receita.
+    function etapaOn(k) { return !ETAPAS[k] || ETAPAS[k].ativo !== false; }
+    function receitaNoInicio() { return etapaOn('receita') && ETAPAS.receita.posicao === 'inicio' && state.need !== 'descanso'; }
+    function seqFor(need) {
+        var r0 = receitaNoInicio() ? 'recipe' : null, r1 = (!receitaNoInicio() && etapaOn('receita')) ? 'recipe' : null, s;
+        if (need === 'descanso') s = ['desc-frame'];
+        else if (need === 'simples') s = [r0, etapaOn('distancia') ? 'mono-dist' : null, 'mono-grau', etapaOn('tratamento_mono') ? 'mono-trat' : null, r1];
+        else if (need === 'multifocal') s = [r0, 'multi-model', 'multi-grau', etapaOn('tratamento_multi') ? 'multi-trat' : null, r1];
+        else if (need === 'solar') s = [r0, etapaOn('grau_solar') ? 'sun-grau' : null, 'sun-frame', etapaOn('cor_solar') ? 'sun-color' : null, r1];
+        else s = ['x', 'x', 'x'];
+        return ['need'].concat(s.filter(Boolean)).concat(['result']);
     }
+    function pathFor() { return seqFor(state.need); }
+    // Grau a partir da receita (os dois olhos têm que caber na faixa). null = perguntar.
+    function grauPelaReceita(tipo) {
+        var p = state.prescription; if (!p || p.odEsf == null || p.oeEsf == null) return null;
+        var olhos = [[p.odEsf, p.odCil], [p.oeEsf, p.oeCil]], lista = FAIXAS_GRAU[tipo];
+        for (var i = 0; i < lista.length; i++) {
+            var f = lista[i];
+            var ok = olhos.every(function (o) { var e = Number(o[0]), c = Math.abs(Number(o[1] || 0)); return e >= -f[1] && e <= f[2] && c <= f[3]; });
+            if (ok && tipo === 'multi') { var a = Number(p.adicao); ok = !(a > 0) || a <= f[4]; }
+            if (!ok) continue;
+            if (tipo === 'mono' && !anyOn(MONO[f[0]])) continue;
+            if (tipo === 'multi' && !anyOn((MULTI[state.model] || {})[f[0]])) continue;
+            return f[0];
+        }
+        return null;
+    }
+    // Etapa desligada: usa o padrão escolhido pela loja.
+    function aplicaPadroes() {
+        if (state.need === 'simples' && !etapaOn('tratamento_mono')) state.trat = ETAPAS.tratamento_mono.padrao || 'ar';
+        if (state.need === 'multifocal' && !etapaOn('tratamento_multi')) state.trat = ETAPAS.tratamento_multi.padrao || 'sem_ar';
+        if (state.need === 'solar' && !etapaOn('grau_solar')) state.grau = 'leve';
+        if (!etapaOn('receita') && state.need !== 'descanso') { state.recipeMode = 'pular'; state.prescription = null; }
+    }
+    function irPara(nome) {
+        if (nome === 'result') { aplicaPadroes(); renderResult(); return; }
+        if (nome === 'multi-grau') { var g = grauPelaReceita('multi'); if (g) { state.grau = g; state.grauAuto = true; track('grau', { grau: g, modelo: state.model, auto: true }); avancar('multi-grau'); return; } renderMultiGrau(); return; }
+        if (nome === 'mono-grau') { var g2 = grauPelaReceita('mono'); if (g2) { state.grau = g2; state.grauAuto = true; track('grau', { grau: g2, auto: true }); avancar('mono-grau'); return; } }
+        if (nome === 'recipe') { var sub = $('.plb-step[data-step="recipe"] [data-sub]'); if (sub) sub.innerHTML = T(receitaNoInicio() ? 'receita.sub_inicio' : 'receita.sub'); }
+        aplicaPadroes();
+        show(nome);
+    }
+    function avancar(de) { var s = seqFor(state.need), i = s.indexOf(de); irPara(s[i + 1] || 'result'); }
     function paintProgress(name) {
         var path=pathFor(), key=(name==='form'||name==='loading')?'recipe':name, idx=Math.max(0,path.indexOf(key));
         var html=''; for(var i=0;i<path.length;i++) html+='<i class="'+(i<=idx?'on':'')+'"></i>';
@@ -428,7 +493,7 @@
 
     $('.plb-close').addEventListener('click',close);overlay.addEventListener('click',function(event){if(event.target===overlay)close();});
     $('#plb-file').addEventListener('change',function(){var file=this.files&&this.files[0];if(file)readPrescription(file);this.value='';});
-    $('#plb-form-next').addEventListener('click',function(){state.prescription=values();renderResult();});
+    $('#plb-form-next').addEventListener('click',function(){state.prescription=values();avancar('recipe');});
     $('#plb-buy-both').addEventListener('click',function(){if(!state.lens||!lock(this))return;var button=this;track('carrinho',{lente:state.lens.nome,preco:state.lens.preco,distancia:state.dist,cor:state.color,receita_modo:state.recipeMode,receita:state.prescription});addLens(state.lens).then(function(){buyFrame();}).catch(function(){button.disabled=false;button.textContent=button.dataset.label||'Comprar armação + lente';alert('Não conseguimos adicionar a lente ao carrinho. Tente novamente.');});});
 
     overlay.addEventListener('click',function(event){
@@ -436,19 +501,19 @@
         if(!t)return; event.preventDefault(); var d=t.dataset;
         if(d.back){goBack();return;}
         if(d.need){state={need:d.need,last:state.last};track('necessidade',{necessidade:d.need});
-            if(d.need==='descanso')show('desc-frame');else if(d.need==='simples')show('mono-dist');else if(d.need==='multifocal')show('multi-model');else show('sun-grau');return;}
-        if(d.frame){state.frameType=d.frame;track('armacao',{armacao:d.frame});if(state.need==='descanso')renderResult();else show('sun-color');return;}
-        if(d.dist){state.dist=d.dist;track('distancia',{distancia:d.dist});show('mono-grau');return;}
-        if(d.model){state.model=d.model;track('modelo',{modelo:d.model});renderMultiGrau();return;}
-        if(d.grau){state.grau=d.grau;track('grau',{grau:d.grau,modelo:state.model||null});show(state.need==='multifocal'?'multi-trat':'mono-trat');return;}
-        if(d.trat){state.trat=d.trat;track('tratamento',{tratamento:d.trat});show('recipe');return;}
-        if(d.sungrau){state.grau=d.sungrau;show('sun-frame');return;}
-        if(d.color){state.color=d.color;track('cor',{cor:d.color});show('recipe');return;}
+            avancar('need');return;}
+        if(d.frame){state.frameType=d.frame;track('armacao',{armacao:d.frame});avancar(state.need==='descanso'?'desc-frame':'sun-frame');return;}
+        if(d.dist){state.dist=d.dist;track('distancia',{distancia:d.dist});avancar('mono-dist');return;}
+        if(d.model){state.model=d.model;track('modelo',{modelo:d.model});avancar('multi-model');return;}
+        if(d.grau){state.grau=d.grau;state.grauAuto=false;track('grau',{grau:d.grau,modelo:state.model||null});avancar(state.need==='multifocal'?'multi-grau':'mono-grau');return;}
+        if(d.trat){state.trat=d.trat;track('tratamento',{tratamento:d.trat});avancar(state.need==='multifocal'?'multi-trat':'mono-trat');return;}
+        if(d.sungrau){state.grau=d.sungrau;avancar('sun-grau');return;}
+        if(d.color){state.color=d.color;track('cor',{cor:d.color});avancar('sun-color');return;}
         if(d.recipe){state.recipeMode=d.recipe;track('receita_metodo',{metodo:d.recipe});
             if(d.recipe==='foto'){$('#plb-file').click();return;}
             if(d.recipe==='digitar'){goForm('');return;}
             if(d.recipe==='whatsapp'){whatsapp('Olá! Quero ajuda com a receita para as lentes da '+frame().name+'.');return;}
-            if(d.recipe==='pular'){state.prescription=null;renderResult();return;}}
+            if(d.recipe==='pular'){state.prescription=null;avancar('recipe');return;}}
     });
 
     function insertButton() { var form=getProductForm(),buy=form&&form.querySelector('.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');if(!buy||document.querySelector('.plb-lens-btn'))return !!buy;var button=document.createElement('button');button.type='button';button.className='plb-lens-btn';button.textContent=BOTAO_TEXTO;button.addEventListener('click',function(event){event.preventDefault();open();});var tryOn=document.querySelector('.q-btn-inline-provador');var anchor=tryOn||buy;anchor.parentNode.insertBefore(button,anchor.nextSibling);return true; }
