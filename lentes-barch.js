@@ -121,7 +121,7 @@
        Etapa desligada usa um padrão (tratamento) ou fica "a combinar"; receita desligada = enviar depois.
        Com a receita no início, o grau sai da receita (FAIXAS_GRAU) e a pergunta de grau é pulada. */
     var ETAPAS = {
-        receita: { ativo: true, posicao: 'final' },          // posicao: 'inicio' (logo após o tipo de lente) | 'final'
+        receita: { ativo: true, posicao: 'final' },          // posicao: 'primeiro' (1ª tela) | 'inicio' (logo após o tipo de lente) | 'final'
         distancia: { ativo: true },                          // perto / longe (monofocal)
         tratamento_mono: { ativo: true, padrao: 'ar' },      // padrao: 'ar' | 'blue'
         tratamento_multi: { ativo: true, padrao: 'sem_ar' }, // padrao: 'sem_ar' | 'prime'
@@ -189,7 +189,7 @@
             Object.keys(ETAPAS).forEach(function (k) {
                 var e = cfg.etapas[k]; if (!e || typeof e !== 'object') return;
                 if (typeof e.ativo === 'boolean') ETAPAS[k].ativo = e.ativo;
-                if (k === 'receita' && (e.posicao === 'inicio' || e.posicao === 'final')) ETAPAS.receita.posicao = e.posicao;
+                if (k === 'receita' && (e.posicao === 'primeiro' || e.posicao === 'inicio' || e.posicao === 'final')) ETAPAS.receita.posicao = e.posicao;
                 if (k === 'tratamento_mono' && (e.padrao === 'ar' || e.padrao === 'blue')) ETAPAS[k].padrao = e.padrao;
                 if (k === 'tratamento_multi' && (e.padrao === 'sem_ar' || e.padrao === 'prime')) ETAPAS[k].padrao = e.padrao;
             });
@@ -223,6 +223,63 @@
         if (!FLUXO_ATIVO && !PREVIEW) return;   // loja desligou o fluxo no painel
         boot();
     });
+
+    // ---- tema completo: uma cor por elemento + cantos + fonte (vence os atalhos de cor) ----
+    var PL_SLOTS = ['fundo_tela', 'fundo_janela', 'texto', 'texto_secundario', 'titulo', 'progresso_fundo', 'progresso',
+        'opcao_fundo', 'opcao_borda', 'opcao_foco', 'opcao_foco_fundo', 'botao', 'botao_texto', 'botao_secundario',
+        'botao_secundario_texto', 'link', 'preco', 'resultado_borda', 'aviso_fundo', 'aviso_texto', 'selo_fundo', 'selo_texto',
+        'campo_fundo', 'campo_borda'];
+    var PL_FONTES = { 'DM Sans': 'sans-serif', 'Inter': 'sans-serif', 'Poppins': 'sans-serif', 'Montserrat': 'sans-serif', 'Lato': 'sans-serif',
+        'Nunito': 'sans-serif', 'Raleway': 'sans-serif', 'Work Sans': 'sans-serif', 'Josefin Sans': 'sans-serif', 'Quicksand': 'sans-serif',
+        'Playfair Display': 'serif', 'Lora': 'serif', 'Cormorant Garamond': 'serif', 'Libre Baskerville': 'serif' };
+    function plCssGranular(t, mapa) {
+        if (!t || !mapa) return '';
+        var css = '', hex = function (v) { return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(v || '').trim()) ? String(v).trim() : null; };
+        PL_SLOTS.forEach(function (k) {
+            var v = hex(t[k]); if (!v || !mapa[k]) return;
+            mapa[k].forEach(function (r) { css += r[0] + '{' + r[1] + ':' + v + '!important}'; });
+        });
+        var raio = parseInt(t.raio, 10);
+        if (t.raio !== undefined && t.raio !== '' && raio >= 0 && raio <= 40 && mapa.raio) mapa.raio.forEach(function (s) { css += s + '{border-radius:' + raio + 'px!important}'; });
+        if (t.fonte && PL_FONTES[t.fonte] && mapa.fonte) {
+            var id = 'pl-fonte-' + t.fonte.replace(/\s+/g, '-').toLowerCase();
+            if (!document.getElementById(id)) {
+                var l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
+                l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(t.fonte).replace(/%20/g, '+') + ':wght@400;500;600;700&display=swap';
+                (document.head || document.documentElement).appendChild(l);
+            }
+            mapa.fonte.forEach(function (s) { css += s + '{font-family:\'' + t.fonte + '\',' + PL_FONTES[t.fonte] + '!important}'; });
+        }
+        return css;
+    }
+    var PL_MAPA_TEMA = {
+        fundo_tela: [['.plb-overlay', 'background']],
+        fundo_janela: [['.plb-card', 'background']],
+        texto: [['.plb-card', 'color'], ['.plb-opt', 'color'], ['.plb-opt b', 'color'], ['.plb-result h3', 'color']],
+        texto_secundario: [['.plb-opt small', 'color'], ['.plb-sub', 'color'], ['.plb-result small', 'color'], ['.plb-field label', 'color']],
+        titulo: [['.plb-label', 'color'], ['.plb-head b', 'color']],
+        progresso_fundo: [['.plb-progress i', 'background']],
+        progresso: [['.plb-progress i.on', 'background']],
+        opcao_fundo: [['.plb-opt', 'background']],
+        opcao_borda: [['.plb-opt', 'border-color'], ['.plb-eye', 'border-color']],
+        opcao_foco: [['.plb-opt:hover', 'border-color']],
+        opcao_foco_fundo: [['.plb-opt:hover', 'background']],
+        botao: [['.plb-lens-btn', 'background'], ['.plb-primary', 'background'], ['.plb-lens-btn', 'border-color'], ['.plb-primary', 'border-color']],
+        botao_texto: [['.plb-lens-btn', 'color'], ['.plb-primary', 'color']],
+        botao_secundario: [['.plb-secondary', 'background'], ['.plb-secondary', 'border-color']],
+        botao_secundario_texto: [['.plb-secondary', 'color']],
+        link: [['.plb-back', 'color'], ['.plb-close', 'color']],
+        preco: [['.plb-price', 'color'], ['.plb-p', 'color']],
+        resultado_borda: [['.plb-result', 'border-color']],
+        aviso_fundo: [['.plb-note', 'background'], ['.plb-why', 'background']],
+        aviso_texto: [['.plb-note', 'color'], ['.plb-why', 'color']],
+        selo_fundo: [['.plb-tag', 'background']],
+        selo_texto: [['.plb-tag', 'color']],
+        campo_fundo: [['.plb-field input', 'background'], ['.plb-field select', 'background']],
+        campo_borda: [['.plb-field input', 'border-color'], ['.plb-field select', 'border-color']],
+        raio: ['.plb-opt', '.plb-primary', '.plb-secondary', '.plb-result', '.plb-lens-btn', '.plb-eye', '.plb-card'],
+        fonte: ['.plb-card', '.plb-card *', '.plb-lens-btn']
+    };
 
     function boot() {
     var state = {};
@@ -306,6 +363,9 @@
         if (tf) css += '.plb-opt:hover,.plb-note,.plb-why,.plb-tag{background:' + tf + '!important}';
         if (tl) css += '.plb-opt,.plb-eye,.plb-secondary,.plb-field input,.plb-field select{border-color:' + tl + '!important}.plb-progress i{background:' + tl + '}';
         if (css) { var temaStyle = document.createElement('style'); temaStyle.id = 'plb-tema'; temaStyle.textContent = css; document.head.appendChild(temaStyle); }
+        // cor por elemento + cantos + fonte (vence os atalhos acima)
+        var cssG = plCssGranular(TEMA, PL_MAPA_TEMA);
+        if (cssG) { var temaStyle2 = document.createElement('style'); temaStyle2.id = 'plb-tema2'; temaStyle2.textContent = cssG; document.head.appendChild(temaStyle2); }
     }
 
     function opt(attrs, name, desc, right) {
@@ -368,8 +428,15 @@
     // Barra de progresso: quantas telas o caminho escolhido tem até a lente.
     // Sequência do caminho escolhido, conforme as etapas ligadas e a posição da receita.
     function etapaOn(k) { return !ETAPAS[k] || ETAPAS[k].ativo !== false; }
-    function receitaNoInicio() { return etapaOn('receita') && ETAPAS.receita.posicao === 'inicio' && state.need !== 'descanso'; }
+    function receitaPrimeiro() { return etapaOn('receita') && ETAPAS.receita.posicao === 'primeiro'; }
+    function receitaNoInicio() { return etapaOn('receita') && (ETAPAS.receita.posicao === 'inicio' || receitaPrimeiro()) && state.need !== 'descanso'; }
     function seqFor(need) {
+        if (receitaPrimeiro()) {   // 1ª tela é a receita; depois o tipo de lente e o resto (sem pedir a receita de novo)
+            var resto = need === 'descanso' ? ['desc-frame'] : need === 'simples' ? [etapaOn('distancia') ? 'mono-dist' : null, 'mono-grau', etapaOn('tratamento_mono') ? 'mono-trat' : null]
+                : need === 'multifocal' ? ['multi-model', 'multi-grau', etapaOn('tratamento_multi') ? 'multi-trat' : null]
+                : need === 'solar' ? [etapaOn('grau_solar') ? 'sun-grau' : null, 'sun-frame', etapaOn('cor_solar') ? 'sun-color' : null] : ['x', 'x'];
+            return ['recipe', 'need'].concat(resto.filter(Boolean)).concat(['result']);
+        }
         var r0 = receitaNoInicio() ? 'recipe' : null, r1 = (!receitaNoInicio() && etapaOn('receita')) ? 'recipe' : null, s;
         if (need === 'descanso') s = ['desc-frame'];
         else if (need === 'simples') s = [r0, etapaOn('distancia') ? 'mono-dist' : null, 'mono-grau', etapaOn('tratamento_mono') ? 'mono-trat' : null, r1];
@@ -409,7 +476,7 @@
         aplicaPadroes();
         show(nome);
     }
-    function avancar(de) { var s = seqFor(state.need), i = s.indexOf(de); irPara(s[i + 1] || 'result'); }
+    function avancar(de) { if (de === 'recipe' && !state.need) { show('need'); return; } var s = seqFor(state.need), i = s.indexOf(de); irPara(s[i + 1] || 'result'); }
     function paintProgress(name) {
         var path=pathFor(), key=(name==='form'||name==='loading')?'recipe':name, idx=Math.max(0,path.indexOf(key));
         var html=''; for(var i=0;i<path.length;i++) html+='<i class="'+(i<=idx?'on':'')+'"></i>';
@@ -449,7 +516,7 @@
         navStack=[];
         $$('[data-r]').forEach(function(s){ s.value=''; });
         overlay.style.display='flex';document.documentElement.style.overflow='hidden';
-        show('need',true);track('abriu',{origem:'botao_produto'});
+        if(receitaPrimeiro())irPara('recipe');else show('need',true);track('abriu',{origem:'botao_produto'});
     }
     function close() { overlay.style.display='none';document.documentElement.style.overflow='';if(state.last&&!/carrinho/.test(state.last))track('saiu',{ultimo_step:state.last}); }
 
@@ -462,7 +529,7 @@
 
     function getValue(key) { var field=$('[data-r="'+key+'"]'); return field&&field.value!==''?Number(field.value):null; }
     function nearest(key,value) { if(value==null)return;var select=$('[data-r="'+key+'"]');if(!select)return;var best='',distance=Infinity;[].slice.call(select.options).forEach(function(option){if(option.value==='')return;var current=Math.abs(Number(option.value)-Number(value));if(current<distance){distance=current;best=option.value;}});select.value=best; }
-    function goForm(note) { $('#plb-add-wrap').style.display=state.need==='multifocal'?'block':'none';var box=$('#plb-read-note');box.style.display=note?'block':'none';box.innerHTML=note||'';show('form'); }
+    function goForm(note) { $('#plb-add-wrap').style.display=(state.need==='multifocal'||!state.need)?'block':'none';var box=$('#plb-read-note');box.style.display=note?'block':'none';box.innerHTML=note||'';show('form'); }
     function readPrescription(file) { show('loading');var reader=new FileReader();reader.onload=function(){var base64=String(reader.result).split(',')[1];fetch(WEBHOOK_RECEITA,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:base64,mime:file.type||'image/jpeg',path:sessionId()+'/'+Date.now()+'.'+((file.type||'image/jpeg').split('/')[1]||'jpg')})}).then(function(response){return response.json();}).then(function(response){if(!response.ok)throw new Error(response.erro||'leitura');var data=response.dados||{};nearest('odEsf',data.odEsf);nearest('oeEsf',data.oeEsf);nearest('odCil',data.odCil);nearest('oeCil',data.oeCil);nearest('odEixo',data.odEixo);nearest('oeEixo',data.oeEixo);nearest('adicao',data.adicao);track('receita_lida',{ok:true,confianca:data.confianca||null});goForm(data.confianca==='baixa'?'A leitura ficou com baixa confiança.<br><strong>Confira todos os números.</strong>':'Preenchemos o que encontramos.<br><strong>Confira antes de continuar.</strong>');}).catch(function(){track('receita_lida',{ok:false});goForm('Não conseguimos ler automaticamente.<br><strong>Digite os dados da receita.</strong>');});};reader.onerror=function(){goForm('Não conseguimos abrir o arquivo.<br>Digite os dados da receita.');};reader.readAsDataURL(file); }
 
     function renderMultiGrau() {
@@ -500,7 +567,7 @@
         var t=event.target.closest('[data-back],[data-need],[data-frame],[data-dist],[data-grau],[data-trat],[data-model],[data-sungrau],[data-color],[data-recipe]');
         if(!t)return; event.preventDefault(); var d=t.dataset;
         if(d.back){goBack();return;}
-        if(d.need){state={need:d.need,last:state.last};track('necessidade',{necessidade:d.need});
+        if(d.need){var rp=receitaPrimeiro()&&state.recipeMode?{prescription:state.prescription,recipeMode:state.recipeMode}:{};state={need:d.need,last:state.last,prescription:rp.prescription||null,recipeMode:rp.recipeMode||null};track('necessidade',{necessidade:d.need});
             avancar('need');return;}
         if(d.frame){state.frameType=d.frame;track('armacao',{armacao:d.frame});avancar(state.need==='descanso'?'desc-frame':'sun-frame');return;}
         if(d.dist){state.dist=d.dist;track('distancia',{distancia:d.dist});avancar('mono-dist');return;}
