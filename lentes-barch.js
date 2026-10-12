@@ -172,6 +172,8 @@
         }
     }
     function loadConfig() {
+        // Prévia de rascunho do painel (preview-lentes.html?draft=1): usa a config ainda não salva.
+        if (PREVIEW && window.__PL_LENTES_CFG_OVERRIDE) return Promise.resolve(window.__PL_LENTES_CFG_OVERRIDE);
         var CACHE = 'plb_lentes_cfg_' + LOJA_DOMINIO;
         if (!PREVIEW) {   // na loja: 5 min de cache pra não buscar a cada página
             try { var c = JSON.parse(sessionStorage.getItem(CACHE) || 'null'); if (c && Date.now() - c.t < 300000) return Promise.resolve(c.cfg); } catch (_) {}
