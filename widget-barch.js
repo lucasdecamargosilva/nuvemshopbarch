@@ -2055,6 +2055,78 @@ const fd = new FormData();
                     } catch (e) {}
                     allProdImgs = allProdImgs.slice(0, 4);
                     console.log('[PL Barch] Enviando', allProdImgs.length, _faceUrls.length ? 'fotos no rosto' : 'fotos do produto');
+                    // ── Regra de fotos da frota (12/10/2026, Lucas) ─────────────────────────────
+                    // VARIANTE SELECIONADA -> candidatas (foto da variante, grupo vizinho, fotos com rosto)
+                    // -> o gerador filtra por imagem usando a foto da variante (variant_ref_index) como
+                    // referencia de cor e fica com ate 4: rosto da cor certa como principal + packshots.
+                    // Produto sem variante com foto: nao mexe (vale a regra antiga da loja).
+                    try {
+                        var _plFV = await (async function () {
+                            var chave = function (x) { return String(x || '').split('?')[0].split('/').pop().replace(/-\d+-\d+\.(webp|jpe?g|png)$/i, ''); };
+                            var abs = function (x) { x = String(x || '').split(' ')[0]; if (x.indexOf('//') === 0) x = location.protocol + x; return x.replace(/-\d+-\d+\.webp/, '-1024-1024.webp'); };
+                            var principal = document.querySelector('#single-product[data-variants], .js-product-detail[data-variants], .js-product-container[data-variants]:not([id^="quick"])');
+                            if (!principal) { var pv = document.querySelector('.js-product-variants'); principal = pv && pv.closest('[data-variants]'); }
+                            if (!principal) return null;
+                            var vs = []; try { vs = JSON.parse(principal.getAttribute('data-variants') || '[]'); } catch (e) {}
+                            var imgsVar = {}; vs.forEach(function (v) { if (v.image_url) imgsVar[chave(v.image_url)] = 1; });
+                            if (Object.keys(imgsVar).length < 2) return null;
+                            // variante selecionada: id (url/shipping) -> selects -> botao selecionado
+                            var el = document.querySelector('#shipping-variant-id, [name="variant_id"]');
+                            var vid = String(new URLSearchParams(location.search).get('variant') || (el && el.value) || '');
+                            var sel = null;
+                            if (vid) sel = vs.filter(function (v) { return String(v.id) === vid; })[0] || null;
+                            if (!sel) {
+                                var vals = []; principal.querySelectorAll('select.js-variation-option, select[name^="variation"]').forEach(function (s) { var m = String(s.name || '').match(/\[(\d)\]/); vals[m ? +m[1] : vals.length] = s.value; });
+                                if (vals.length) sel = vs.filter(function (x) { return vals.every(function (val, i) { return val == null || String(x['option' + i] || '') === String(val); }); })[0] || null;
+                            }
+                            if (!sel) { var b = principal.querySelector('.js-btn-variation.selected'); var nm = b && String(b.getAttribute('data-option') || '').trim().toLowerCase(); if (nm) sel = vs.filter(function (v) { return String(v.option0 || '').trim().toLowerCase() === nm; })[0] || null; }
+                            if (!sel || !sel.image_url) return null;
+                            var gal = [];
+                            principal.querySelectorAll('.js-product-slide-img, .js-product-slide img').forEach(function (im) {
+                                var u = (im.getAttribute('data-srcset') || im.getAttribute('srcset') || im.getAttribute('data-src') || im.getAttribute('src') || '').split(',').pop().trim().split(' ')[0];
+                                if (!u || u.indexOf('data:') === 0 || /provador|logo|provoulevou|icon|placeholder|blank|spacer|video|play/i.test(u)) return;
+                                if (!gal.some(function (g) { return chave(g) === chave(u); })) gal.push(u);
+                            });
+                            if (!gal.length) document.querySelectorAll('.js-product-slide-img, .js-product-slide img').forEach(function (im) {
+                                var u = (im.getAttribute('data-srcset') || im.getAttribute('srcset') || im.getAttribute('data-src') || im.getAttribute('src') || '').split(',').pop().trim().split(' ')[0];
+                                if (!u || u.indexOf('data:') === 0 || /provador|logo|provoulevou|icon|placeholder|blank|spacer|video|play/i.test(u)) return;
+                                if (!gal.some(function (g) { return chave(g) === chave(u); })) gal.push(u);
+                            });
+                            var ini = gal.findIndex(function (g) { return chave(g) === chave(sel.image_url); });
+                            var varUrl = abs(sel.image_url);
+                            var idxVar = []; gal.forEach(function (g, i) { if (imgsVar[chave(g)]) idxVar.push(i); });
+                            // grupo vizinho (lojas que organizam a galeria por cor)
+                            var grupo = [];
+                            if (ini >= 0) { var prox = idxVar.filter(function (i) { return i > ini; })[0]; grupo = gal.slice(ini + 1, prox === undefined ? gal.length : prox); }
+                            // demais fotos da galeria, menos as vinculadas a OUTRAS variantes (com certeza outra cor)
+                            var resto = gal.filter(function (g, i) { return i !== ini && idxVar.indexOf(i) < 0 && grupo.indexOf(g) < 0; });
+                            var cand = grupo.concat(resto).map(abs).slice(0, 10);
+                            // fotos com rosto: primeiro as do grupo, depois as da galeria (ate 3)
+                            var rostos = [];
+                            try {
+                                if (typeof getFaceDetector === 'function' && typeof _plLoadCorsImg === 'function' && typeof _plImgHasFace === 'function') {
+                                    var det = await getFaceDetector();
+                                    if (det) for (var ci = 0; ci < cand.length && rostos.length < 3; ci++) {
+                                        var cim = await _plLoadCorsImg(cand[ci]);
+                                        if (cim && await _plImgHasFace(det, cim)) rostos.push(cand[ci]);
+                                    }
+                                }
+                            } catch (e) {}
+                            // ordem: rosto (principal) > variante > grupo > outros rostos > resto. O gerador filtra a cor
+                            // pela foto da variante e fica com ate 4.
+                            var fotos = [];
+                            var add = function (u) { if (u && fotos.indexOf(u) < 0) fotos.push(u); };
+                            add(rostos[0]); add(varUrl); grupo.map(abs).forEach(add); rostos.slice(1).forEach(add); resto.map(abs).forEach(add);
+                            fotos = fotos.slice(0, 6);
+                            return { fotos: fotos, variante: varUrl };
+                        })();
+                        if (_plFV && _plFV.fotos && _plFV.fotos.length) {
+                            allProdImgs = _plFV.fotos;
+                            fd.append('variant_ref_index', String(_plFV.fotos.indexOf(_plFV.variante) + 1));
+                            console.log('[PL] fotos da variante:', allProdImgs.length);
+                        }
+                    } catch (_plE) {}
+                    // ─────────────────────────────────────────────────────────────────────────────
                     let _primaryDone = false, _slot = 1;
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
                         try {
