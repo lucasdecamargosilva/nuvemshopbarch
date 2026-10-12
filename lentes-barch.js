@@ -115,6 +115,7 @@
         { key: 'pular', titulo: 'Pular esta etapa', desc: 'Envie a receita depois: chamamos você no WhatsApp da compra', ativo: true }
     ];
     var CORES_SOLAR = ['Marrom', 'Preto'];
+    var TEMA = null;   // cores do painel: { botao, botao_texto, destaque, fundo_opcao, borda } em #hex
 
     function fmt(text) {
         var html = String(text == null ? '' : text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -166,6 +167,7 @@
         });
         NEEDS = mergeList(NEEDS, cfg.necessidades);
         RECEITA = mergeList(RECEITA, cfg.receita);
+        if (cfg.tema && typeof cfg.tema === 'object') TEMA = cfg.tema;
         if (Array.isArray(cfg.cores_solar)) {
             var cores = cfg.cores_solar.map(function (c) { return String(c || '').trim(); }).filter(Boolean);
             if (cores.length) CORES_SOLAR = cores;
@@ -265,6 +267,18 @@
     var extraStyle=document.createElement('style');
     extraStyle.textContent='.plb-sub{display:block;text-align:center;font-size:12px;line-height:1.5;color:#75675e;margin:-8px 0 16px}.plb-opt .plb-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.plb-opt .plb-tag{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:#f5efe9;color:#8a6d5b;border-radius:20px;padding:3px 8px;white-space:nowrap}.plb-opt .plb-p{font-size:13px;font-weight:700;white-space:nowrap}.plb-opt small b{font-weight:650}.plb-list{margin:10px 0 0;padding:0 0 0 16px;font-size:12px;line-height:1.6;color:#3a2e26}';
     document.head.appendChild(extraStyle);
+
+    // Cores escolhidas no painel (sobrepõem as cores padrão acima)
+    if (TEMA) {
+        var cor = function (v) { return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(String(v || '').trim()) ? String(v).trim() : null; };
+        var tb = cor(TEMA.botao), tt = cor(TEMA.botao_texto), td = cor(TEMA.destaque), tf = cor(TEMA.fundo_opcao), tl = cor(TEMA.borda), css = '';
+        if (tb) css += '.plb-lens-btn,.plb-primary{background:' + tb + '!important;border-color:' + tb + '!important}';
+        if (tt) css += '.plb-lens-btn,.plb-primary{color:' + tt + '!important}';
+        if (td) css += '.plb-progress i.on{background:' + td + '!important}.plb-opt:hover{border-color:' + td + '!important}.plb-result{border-color:' + td + '!important}.plb-tag{color:' + td + '!important}';
+        if (tf) css += '.plb-opt:hover,.plb-note,.plb-why,.plb-tag{background:' + tf + '!important}';
+        if (tl) css += '.plb-opt,.plb-eye,.plb-secondary,.plb-field input,.plb-field select{border-color:' + tl + '!important}.plb-progress i{background:' + tl + '}';
+        if (css) { var temaStyle = document.createElement('style'); temaStyle.id = 'plb-tema'; temaStyle.textContent = css; document.head.appendChild(temaStyle); }
+    }
 
     function opt(attrs, name, desc, right) {
         return '<button type="button" class="plb-opt" '+attrs+'><span class="plb-row"><b>'+name+'</b>'+(right||'')+'</span>'+(desc?'<small>'+desc+'</small>':'')+'</button>';
