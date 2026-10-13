@@ -74,7 +74,7 @@
     var SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
     var LOJA_DOMINIO = PREVIEW ? 'barcheyewear.com.br' : String(location.hostname || '').replace(/^www\./, '').toLowerCase();
     var BOTAO_TEXTO = 'Escolher lentes e comprar';
-    var FLUXO_ATIVO = true;
+    var FLUXO_ATIVO = false;   // 13/10/2026: so liga com config.geral.ativo === true (ausente/sem config = desligado)
     // Textos: \n vira quebra de linha e **assim** vira negrito (o painel edita nesse formato).
     var TXT = {
         'need.titulo': 'Qual tipo de lente você procura?',
@@ -169,7 +169,7 @@
         var g = cfg.geral || {};
         if (g.whatsapp && String(g.whatsapp).replace(/\D/g, '').length >= 12) WHATSAPP_LOJA = String(g.whatsapp).replace(/\D/g, '');
         if (g.botao_texto && String(g.botao_texto).trim()) BOTAO_TEXTO = String(g.botao_texto).trim();
-        if (g.ativo === false) FLUXO_ATIVO = false;
+        FLUXO_ATIVO = g.ativo === true;
         (Array.isArray(cfg.lentes) ? cfg.lentes : []).forEach(function (s) {
             var item = s && lensByKey(s.key); if (!item) return;
             if (String(s.nome || '').trim()) item.nome = String(s.nome).trim();
