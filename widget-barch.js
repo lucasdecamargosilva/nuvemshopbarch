@@ -2273,35 +2273,50 @@ const fd = new FormData();
     }
 
 
-    // Barch: quando o app Lente Ideal injeta "Escolher lentes e comprar" (largura total da linha),
-    // o provador vai pra MESMA linha, logo acima dele, com o mesmo tamanho.
+    // Barch — layout dos botões (18/10/2026, pedido da Mari no tema novo):
+    //   [ ESCOLHER LENTES E COMPRAR ]            ← botão do app Lente Ideal, largura toda
+    //   [ COMPRAR SÓ ARMAÇÃO ] [ PROVADOR VIRTUAL ]  ← contorno marrom, lado a lado
+    // Só entra quando o Lente Ideal injeta o botão (ele aparece depois da 1ª interação); sem ele, fica o tema.
     (function () {
-        // o Lente Ideal só injeta o botão depois da 1ª interação do visitante → observa sem prazo
+        var TXT = 'Comprar só armação';
+        function css() {
+            if (document.getElementById('pl-barch-btns')) return;
+            var st = document.createElement('style'); st.id = 'pl-barch-btns';
+            st.textContent =
+                '#product_form .product-actions.pl-barch-layout{display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-areas:"lente lente" "armacao provador"!important;gap:12px!important;align-items:stretch!important}' +
+                '#product_form .product-actions.pl-barch-layout>.form-quantity-container{display:none!important}' +
+                '#product_form .product-actions.pl-barch-layout>.lip-btn-wrapper{grid-area:lente!important;width:100%!important;margin:0!important}' +
+                '#product_form .product-actions.pl-barch-layout>.lip-btn-wrapper .btn-lente-ideal-injetado{width:100%!important;height:64px!important;border-radius:10px!important;font-size:15px!important;font-weight:800!important;letter-spacing:2px!important;text-transform:uppercase!important}' +
+                '#product_form .product-actions.pl-barch-layout>.buy-button-container{grid-area:armacao!important;width:100%!important;margin:0!important}' +
+                '#product_form .product-actions.pl-barch-layout>.q-btn-inline-provador{grid-area:provador!important;width:100%!important;margin:0!important}' +
+                '#product_form .product-actions.pl-barch-layout>.buy-button-container input.js-addtocart,#product_form .product-actions.pl-barch-layout>.q-btn-inline-provador{height:64px!important;min-height:64px!important;line-height:1.25!important;width:100%!important;background:transparent!important;color:#9a6a4b!important;border:1.5px solid #9a6a4b!important;border-radius:10px!important;font-size:13px!important;font-weight:800!important;letter-spacing:2px!important;text-transform:uppercase!important;white-space:normal!important;padding:6px 10px!important;box-shadow:none!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}' +
+                '#product_form .product-actions.pl-barch-layout>.q-btn-inline-provador svg{display:none!important}' +
+                '#product_form .product-actions.pl-barch-layout>.buy-button-container input.js-addtocart:hover,#product_form .product-actions.pl-barch-layout>.q-btn-inline-provador:hover{background:rgba(154,106,75,.08)!important}' +
+                '@media (max-width:480px){#product_form .product-actions.pl-barch-layout>.buy-button-container input.js-addtocart,#product_form .product-actions.pl-barch-layout>.q-btn-inline-provador{font-size:12px!important;letter-spacing:1px!important}}';
+            document.head.appendChild(st);
+        }
         var agendado = false;
         function ajusta() {
             agendado = false;
-            // "Comprar" em negrito: aplicado direto no botão (uma regra do tema vence a do <style>)
-            var bb = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form');
-            if (bb && bb.style.getPropertyValue('font-weight') !== '700') bb.style.setProperty('font-weight', '700', 'important');
-            var lip = document.querySelector('.lip-btn-wrapper');
-            var prov = document.querySelector('.q-btn-inline-provador');
-            if (!lip || !prov || !lip.parentNode) return;
-            if (prov.nextElementSibling !== lip) lip.parentNode.insertBefore(prov, lip);
-            if (!prov.classList.contains('q-pl-igual-lentes')) prov.classList.add('q-pl-igual-lentes');
-            // copia a altura REAL do botão do Lente Ideal (muda entre celular e computador)
-            var btnL = lip.querySelector('.btn-lente-ideal-injetado') || lip;
-            var h = Math.round(btnL.getBoundingClientRect().height);
-            if (h > 20 && prov.style.getPropertyValue('height') !== h + 'px') prov.style.setProperty('height', h + 'px', 'important');
-            var rad = getComputedStyle(btnL).borderRadius;
-            if (rad && prov.style.getPropertyValue('border-radius') !== rad) prov.style.setProperty('border-radius', rad, 'important');
-            // LETRA da loja: a mesma do botão "Comprar" do tema (Lucas: não a do app Lente Ideal)
-            var tx = document.querySelector('#product_form input.js-addtocart.js-prod-submit-form') || btnL, cs = getComputedStyle(tx);
-            [['font-family', cs.fontFamily], ['font-size', cs.fontSize], ['font-weight', '700'], ['letter-spacing', cs.letterSpacing], ['text-transform', cs.textTransform]]   /* negrito (pedido do Lucas) */
-                .forEach(function (kv) { if (kv[1] && prov.style.getPropertyValue(kv[0]) !== kv[1]) prov.style.setProperty(kv[0], kv[1], 'important'); });
+            var lip = document.querySelector('#product_form .lip-btn-wrapper');
+            var prov = document.querySelector('#product_form .q-btn-inline-provador');
+            var acts = lip && lip.closest('.product-actions');
+            if (!lip || !prov || !acts) return;
+            css();
+            if (!acts.classList.contains('pl-barch-layout')) acts.classList.add('pl-barch-layout');
+            if (prov.parentNode !== acts) acts.appendChild(prov);
+            // o código antigo deixava altura/fonte inline no provador — limpa para valer o layout novo
+            ['height', 'border-radius', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'text-transform'].forEach(function (p) { if (prov.style.getPropertyValue(p)) prov.style.removeProperty(p); });
+            var bb = acts.querySelector('input.js-addtocart.js-prod-submit-form');
+            if (bb) {
+                if (bb.getAttribute('data-add-to-cart-label') !== TXT) bb.setAttribute('data-add-to-cart-label', TXT);
+                // não sobrescreve os estados da Nuvemshop ("Incluindo...", "Sem estoque", "Consultar preço")
+                if (/^\s*comprar\s*$/i.test(bb.value || '')) bb.value = TXT;
+            }
         }
         window.addEventListener('resize', function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } });
         new MutationObserver(function () { if (!agendado) { agendado = true; setTimeout(ajusta, 150); } })
-            .observe(document.documentElement, { childList: true, subtree: true });
+            .observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['value'] });
         ajusta();
     })();
 })();
