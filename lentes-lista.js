@@ -514,7 +514,7 @@
             CFG = d.config; L = CFG.lista || {}; ZAP = String(L.whatsapp || '').replace(/\D/g, ''); if (ZAP && !/^55/.test(ZAP)) ZAP = '55' + ZAP;
             if (sh) { sh.getElementById ? (sh.getElementById('s').textContent = css()) : 0; rodape(); }
             if (ui.ov && ui.ov.classList.contains('on')) { var es = etapas(); if (st.idx >= es.length) st.idx = 0; mostra(st.idx); }
-            atualizaBotao();
+            atualizaBotao(); estilo();
         } else if (d.type === 'pl-lentes-ir') {
             if (!ui.ov || !ui.ov.classList.contains('on')) abre();
             var es2 = etapas(), k = es2.findIndex(function (x) { return String(x.id) === String(d.etapa); });
@@ -523,20 +523,51 @@
         }
     });
 
-    /* ---------- botão na página do produto ---------- */
-    var botao;
-    function atualizaBotao() { if (botao) botao.textContent = T('botao_abrir', 'ESCOLHER LENTES E COMPRAR'); }
+    /* ---------- botões na página do produto (19/10/2026, layout aprovado pelo Lucas) ----------
+       Em cima, largura toda: ESCOLHER LENTES E COMPRAR (escuro, ícone de óculos), no lugar do Comprar.
+       Embaixo, lado a lado e só com contorno: o Comprar da loja vira COMPRAR SÓ ARMAÇÃO + PROVADOR VIRTUAL. */
+    var botao, acoes, linha;
+    var OCULOS = '<svg viewBox="0 0 256 256" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M200 40a8 8 0 0 0 0 16 16 16 0 0 1 16 16v58.08A44 44 0 0 0 145.68 152h-35.36A44 44 0 0 0 40 130.08V72a16 16 0 0 1 16-16 8 8 0 0 0 0-16 32 32 0 0 0-32 32v104a44 44 0 0 0 87.81 4h32.38A44 44 0 0 0 232 176V72a32 32 0 0 0-32-32ZM68 204a28 28 0 1 1 28-28 28 28 0 0 1-28 28Zm120 0a28 28 0 1 1 28-28 28 28 0 0 1-28 28Z"/></svg>';
+    function atualizaBotao() { if (botao) botao.innerHTML = OCULOS + '<span>' + esc(T('botao_abrir', 'ESCOLHER LENTES E COMPRAR')) + '</span>'; }
+    function estilo() {
+        var p = V('cor_primaria', '#303030'), m = V('cor_secundaria', '#8b654f'), st = document.getElementById('pll-acoes-css');
+        if (!st) { st = document.createElement('style'); st.id = 'pll-acoes-css'; document.head.appendChild(st); }
+        st.textContent = '.pll-acoes{display:grid;gap:12px;width:100%;margin:' + V('espaco_acima', '16px') + ' 0 ' + V('espaco_abaixo', '20px') + ';box-sizing:border-box}' +
+            '.pll-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;margin:0;padding:10px 16px;border:0;border-radius:14px;background:' + p + ';color:' + V('cor_texto_botao', '#ffffff') + ';font-family:inherit;font-weight:800;font-size:15px;line-height:1.2;letter-spacing:.07em;text-transform:uppercase;box-shadow:0 8px 18px rgba(0,0,0,.18);cursor:pointer;transition:transform .12s,filter .15s}' +
+            '.pll-btn:hover{filter:brightness(1.12)}.pll-btn:active{transform:scale(.99)}' +
+            '.pll-linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px}' +
+            '.pll-acoes .pll-sec{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:62px!important;height:auto!important;margin:0!important;padding:8px 12px!important;background:#fff!important;background-image:none!important;color:' + m + '!important;border:2px solid ' + m + '!important;border-radius:14px!important;font-family:inherit!important;font-weight:800!important;font-size:14px!important;line-height:1.25!important;letter-spacing:.06em!important;text-transform:uppercase!important;text-align:center!important;white-space:normal!important;box-shadow:none!important;cursor:pointer!important;opacity:1!important}' +
+            '.pll-acoes .pll-sec:hover{background:' + m + '!important;color:#fff!important}.pll-acoes .pll-sec svg,.pll-acoes .pll-sec i,.pll-acoes .pll-sec img{display:none!important}' +
+            '@media(max-width:360px){.pll-btn{font-size:13px}.pll-acoes .pll-sec{font-size:12.5px!important}}';
+    }
+    function rotulaComprar(buy) {   // só troca quando a loja mostra "Comprar" (variante sem estoque continua com o aviso da loja)
+        var txt = buy.tagName === 'INPUT' ? buy.value : buy.textContent;
+        if (!/compr|adicionar|carrinho/i.test(txt || '') || /s[oó] arma/i.test(txt)) return;
+        if (buy.tagName === 'INPUT') buy.value = 'COMPRAR SÓ ARMAÇÃO'; else buy.textContent = 'COMPRAR SÓ ARMAÇÃO';
+    }
+    function pegaProvador() {
+        var pv = document.querySelector('.q-btn-inline-provador');
+        if (!pv || !linha || pv.parentNode === linha) return !!pv;
+        pv.classList.add('pll-sec'); linha.appendChild(pv); return true;
+    }
     function insere() {
         var f = formProduto(), buy = f && f.querySelector('.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');
         if (!buy) return false;
         if (document.querySelector('.pll-btn')) return true;
+        estilo();
+        acoes = document.createElement('div'); acoes.className = 'pll-acoes';
         botao = document.createElement('button'); botao.type = 'button'; botao.className = 'pll-btn';
-        var p = V('cor_primaria', '#303030');
-        botao.setAttribute('style', 'display:flex;align-items:center;justify-content:center;width:100%;min-height:48px;margin:' + V('espaco_acima', '12px') + ' 0 ' + V('espaco_abaixo', '12px') + ';border:0;border-radius:8px;background:' + p + ';color:' + V('cor_texto_botao', '#ffffff') + ';font:700 ' + V('tamanho_botao', '13px') + '/1.2 inherit;letter-spacing:.06em;cursor:pointer');
         atualizaBotao();
         botao.addEventListener('click', function (e) { e.preventDefault(); abre(); });
-        var tryOn = document.querySelector('.q-btn-inline-provador'), ref = tryOn || buy;
-        ref.parentNode.insertBefore(botao, ref.nextSibling);
+        linha = document.createElement('div'); linha.className = 'pll-linha';
+        acoes.appendChild(botao); acoes.appendChild(linha);
+        // o bloco entra logo depois da linha do Comprar (continua dentro do form, então o Comprar segue funcionando)
+        var ref = buy.parentNode !== f && f.contains(buy.parentNode) ? buy.parentNode : buy;
+        ref.parentNode.insertBefore(acoes, ref.nextSibling);
+        buy.classList.add('pll-sec'); linha.appendChild(buy);
+        rotulaComprar(buy);
+        try { new MutationObserver(function () { rotulaComprar(buy); }).observe(buy, { attributes: true, attributeFilter: ['value'], childList: true, characterData: true, subtree: true }); } catch (e) {}
+        if (!pegaProvador()) { var k = 0, iv2 = setInterval(function () { if (pegaProvador() || ++k > 60) clearInterval(iv2); }, 250); }
         return true;
     }
     if (!insere()) { var n = 0, iv = setInterval(function () { if (insere() || ++n > 40) clearInterval(iv); }, 300); }
