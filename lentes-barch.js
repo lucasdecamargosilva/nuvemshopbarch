@@ -221,7 +221,9 @@
 
     loadConfig().then(function (cfg) {
         if (cfg && cfg.modo === 'lista') {   // 19/10/2026: fluxo em lista (igual ao Lente Ideal Pro) em lentes-lista.js
-            if (!(cfg.geral && cfg.geral.ativo === true) && !PREVIEW) return;
+            // desligado no geral: liga só nos produtos de teste (config.geral.teste_produtos = ['/produtos/<handle>'])
+            var teste = ((cfg.geral || {}).teste_produtos || []).some(function (p) { return pagePath === String(p || '').replace(/\/+$/, '').toLowerCase(); });
+            if (!(cfg.geral && cfg.geral.ativo === true) && !PREVIEW && !teste) return;
             window.__PLL_CFG = cfg; window.__PLL_LOJA = 'barch';
             var sl = document.createElement('script'); sl.src = BASE + 'lentes-lista.js?v=' + (PREVIEW ? Date.now() : Math.floor(Date.now() / 300000));
             document.body.appendChild(sl);
