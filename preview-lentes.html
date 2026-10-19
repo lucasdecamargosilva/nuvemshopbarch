@@ -59,12 +59,12 @@
         document.body.appendChild(s);
         if (qs.get('abrir') !== '1') return;
         var t = 0, iv = setInterval(function () {
-          var b = document.querySelector('.plb-lens-btn');
+          var b = document.querySelector('.plb-lens-btn,.pll-btn');
           if (b) { clearInterval(iv); b.click(); } else if (++t > 80) clearInterval(iv);
         }, 100);
       }
       if (qs.get('draft') !== '1') { carrega(); return; }
-      var ORIGENS = ['https://provoulevou.com.br', 'https://www.provoulevou.com.br', 'http://localhost:8765'];
+      var ORIGENS = ['https://provoulevou.com.br', 'https://www.provoulevou.com.br', 'http://localhost:8765', 'http://localhost:8767'];
       var feito = false;
       window.addEventListener('message', function (e) {
         if (feito || ORIGENS.indexOf(e.origin) === -1 || !e.data || e.data.type !== 'pl-lentes-cfg') return;
