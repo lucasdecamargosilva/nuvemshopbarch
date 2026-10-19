@@ -538,6 +538,7 @@
             '.pll-linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px}' +
             '.pll-acoes .pll-sec{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:62px!important;height:auto!important;margin:0!important;padding:8px 12px!important;background:#fff!important;background-image:none!important;color:' + m + '!important;border:2px solid ' + m + '!important;border-radius:14px!important;font-family:inherit!important;font-weight:800!important;font-size:14px!important;line-height:1.25!important;letter-spacing:.06em!important;text-transform:uppercase!important;text-align:center!important;white-space:normal!important;box-shadow:none!important;cursor:pointer!important;opacity:1!important}' +
             '.pll-acoes .pll-sec:hover{background:' + m + '!important;color:#fff!important}.pll-acoes .pll-sec svg,.pll-acoes .pll-sec i,.pll-acoes .pll-sec img{display:none!important}' +
+            '.pll-layout{display:block!important}.pll-layout>.form-quantity-container,.pll-layout>.buy-button-container:empty,.pll-layout .lip-btn-wrapper,.pll-layout .btn-lente-ideal-injetado,.plb-lens-btn{display:none!important}' +
             '@media(max-width:360px){.pll-btn{font-size:13px}.pll-acoes .pll-sec{font-size:12.5px!important}}';
     }
     function rotulaComprar(buy) {   // só troca quando a loja mostra "Comprar" (variante sem estoque continua com o aviso da loja)
@@ -565,6 +566,7 @@
         var ref = buy.parentNode !== f && f.contains(buy.parentNode) ? buy.parentNode : buy;
         ref.parentNode.insertBefore(acoes, ref.nextSibling);
         buy.classList.add('pll-sec'); linha.appendChild(buy);
+        if (acoes.parentNode && acoes.parentNode !== f) acoes.parentNode.classList.add('pll-layout');   // bloco de compra do tema: sem quantidade, botões na largura toda (como o layout antigo da Barch)
         rotulaComprar(buy);
         try { new MutationObserver(function () { rotulaComprar(buy); }).observe(buy, { attributes: true, attributeFilter: ['value'], childList: true, characterData: true, subtree: true }); } catch (e) {}
         if (!pegaProvador()) { var k = 0, iv2 = setInterval(function () { if (pegaProvador() || ++k > 60) clearInterval(iv2); }, 250); }
