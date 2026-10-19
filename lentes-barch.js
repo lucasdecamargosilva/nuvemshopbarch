@@ -3,6 +3,7 @@
 
     if (window.__PL_BARCH_LENS_FLOW__) return;
     var PREVIEW = window.BARCH_LENTES_PREVIEW === true;
+    var BASE = (function () { try { var c = document.currentScript; return c && c.src ? c.src.replace(/[^/?#]*([?#].*)?$/, '') : ''; } catch (_) { return ''; } })();
 
     var pagePath = String(location.pathname || '').replace(/\/+$/, '').toLowerCase();
     if (!PREVIEW && !/^\/produtos\/[^/]+$/.test(pagePath)) return;
@@ -219,6 +220,13 @@
     }
 
     loadConfig().then(function (cfg) {
+        if (cfg && cfg.modo === 'lista') {   // 19/10/2026: fluxo em lista (igual ao Lente Ideal Pro) em lentes-lista.js
+            if (!(cfg.geral && cfg.geral.ativo === true) && !PREVIEW) return;
+            window.__PLL_CFG = cfg; window.__PLL_LOJA = 'barch';
+            var sl = document.createElement('script'); sl.src = BASE + 'lentes-lista.js?v=' + (PREVIEW ? Date.now() : Math.floor(Date.now() / 300000));
+            document.body.appendChild(sl);
+            return;
+        }
         try { applyConfig(cfg); } catch (e) { try { console.warn('[lentes] config ignorada:', e); } catch (_) {} }
         if (!FLUXO_ATIVO && !PREVIEW) return;   // loja desligou o fluxo no painel
         boot();
