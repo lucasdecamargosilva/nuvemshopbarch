@@ -2307,6 +2307,13 @@ const fd = new FormData();
             if (prov.parentNode !== acts) acts.appendChild(prov);
             // o código antigo deixava altura/fonte inline no provador — limpa para valer o layout novo
             ['height', 'border-radius', 'font-family', 'font-size', 'font-weight', 'letter-spacing', 'text-transform'].forEach(function (p) { if (prov.style.getPropertyValue(p)) prov.style.removeProperty(p); });
+            // o Lente Ideal fixa estilo inline (!important) no botão dele — ajusta direto no elemento
+            var lb = lip.querySelector('.btn-lente-ideal-injetado');
+            if (lb) {
+                var mob = window.innerWidth <= 480;
+                [['font-size', mob ? '13px' : '15px'], ['letter-spacing', mob ? '1px' : '2px'], ['height', '64px'], ['border-radius', '10px'], ['font-weight', '800']]
+                    .forEach(function (kv) { if (lb.style.getPropertyValue(kv[0]) !== kv[1]) lb.style.setProperty(kv[0], kv[1], 'important'); });
+            }
             var bb = acts.querySelector('input.js-addtocart.js-prod-submit-form');
             if (bb) {
                 if (bb.getAttribute('data-add-to-cart-label') !== TXT) bb.setAttribute('data-add-to-cart-label', TXT);
