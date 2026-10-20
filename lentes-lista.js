@@ -244,6 +244,10 @@
             '.pw{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;background:' + sup + ';border-top:1px solid ' + linha + ';text-decoration:none;color:#999;font-size:10px;letter-spacing:1.5px}' +
             '.pw b{font-size:13px;letter-spacing:0;color:#6d28d9;font-weight:700}.pw b em{font-style:normal;color:#a78bfa;font-weight:500}' +
             '.zfl{bottom:96px}' +
+            /* mais arredondado (pedido do Lucas, 19/10) */
+            '.pn{border-radius:26px;overflow:hidden}.topo img{border-radius:12px}' +
+            '.op,.dc,.ln,.tb,.up{border-radius:20px}.op img{border-radius:14px}.okb,.dnp,.fi{border-radius:16px}' +
+            '.btn{border-radius:999px}select,.fld input{border-radius:12px}.selo{border-radius:999px}.zfl{width:50px;height:50px}' +
             '@media(max-width:767px){.ov{align-items:stretch}.pn{width:100%;max-width:100%;max-height:none;min-height:100%;border-radius:0;transform:translateY(24px)}}';
     }
     function passos(feito, total) {
