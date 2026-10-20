@@ -250,7 +250,12 @@
             '.pn{border-radius:26px;overflow:hidden}.topo img{border-radius:12px}' +
             '.op,.dc,.ln,.tb,.up{border-radius:20px}.op img{border-radius:14px}.okb,.dnp,.fi{border-radius:16px}' +
             '.btn{border-radius:999px}select,.fld input{border-radius:12px}.selo{border-radius:999px}.zfl{width:50px;height:50px}' +
-            '@media(max-width:767px){.ov{align-items:stretch}.pn{width:100%;max-width:100%;max-height:none;min-height:100%;border-radius:0;transform:translateY(24px)}}';
+            '@media(max-width:767px){.ov{align-items:stretch}.pn{width:100%;max-width:100%;max-height:none;min-height:100%;border-radius:0;transform:translateY(24px)}}' +
+            /* visual.abertura = 'lateral': mesmo visual, mas abre como gaveta pela direita (pedido da Barch, 20/10/2026) */
+            (V('abertura', '') === 'lateral' ? '.ov{justify-content:flex-end;align-items:stretch;background:rgba(30,22,18,.42)}' +
+                '.pn{width:min(460px,100%);max-width:100%;height:100%;max-height:none;border-radius:26px 0 0 26px;opacity:1;transform:translateX(100%);transition:transform .34s cubic-bezier(.22,1,.36,1);box-shadow:-12px 0 44px rgba(20,14,10,.2)}' +
+                '.ov.on .pn{transform:none}' +
+                '@media(max-width:767px){.pn{width:100%;border-radius:0;transform:translateX(100%)}}' : '');
     }
     function passos(feito, total) {
         var el = sh && sh.querySelector('.passos'); if (!el) return;
