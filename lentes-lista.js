@@ -253,7 +253,7 @@
             '@media(max-width:767px){.ov{align-items:stretch}.pn{width:100%;max-width:100%;max-height:none;min-height:100%;border-radius:0;transform:translateY(24px)}}' +
             /* visual.abertura = 'lateral': mesmo visual, mas abre como gaveta pela direita (pedido da Barch, 20/10/2026) */
             (V('abertura', '') === 'lateral' ? '.ov{justify-content:flex-end;align-items:stretch;background:rgba(30,22,18,.42)}' +
-                '.pn{width:min(460px,100%);max-width:100%;height:100%;max-height:none;border-radius:26px 0 0 26px;opacity:1;transform:translateX(100%);transition:transform .34s cubic-bezier(.22,1,.36,1);box-shadow:-12px 0 44px rgba(20,14,10,.2)}' +
+                '.pn{width:min(460px,100%);max-width:100%;height:100%;max-height:none;border-radius:0;opacity:1;transform:translateX(100%);transition:transform .34s cubic-bezier(.22,1,.36,1);box-shadow:-12px 0 44px rgba(20,14,10,.2)}' +
                 '.ov.on .pn{transform:none}' +
                 '@media(max-width:767px){.pn{width:100%;border-radius:0;transform:translateX(100%)}}' : '');
     }
