@@ -233,7 +233,7 @@
             '.ov.on .pn{transform:none;opacity:1}' +
             '.topo{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 28px 20px;border-bottom:1px solid ' + linha + ';text-align:center}' +
             '.topo h1{margin:0;font-size:19px;font-weight:400;letter-spacing:.3px;line-height:1;color:' + tinta + '}.topo img{height:54px;width:auto;max-width:70%;object-fit:contain}' +
-            '.passos{display:flex;gap:6px;padding:16px 28px 0}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
+            '.passos{display:flex;gap:6px;padding:22px 52px 0 28px}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
             '.hd{border-bottom:0;text-align:center;padding:16px 40px 6px}.hd h2{margin:0;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;line-height:1.35;color:' + tinta + '}' +
             '.hd p{color:#8b8079;font-size:13px;margin-top:6px}.hd{position:static}.x{top:12px;right:12px;color:#999;z-index:2}.op .ds,.ln .ds{color:#6b5e55}' +
             '.bd{padding:12px 24px 22px}.back{color:#8b8079}.back:hover{color:' + tinta + '}' +
@@ -279,7 +279,8 @@
         host = document.createElement('div'); host.id = 'pll-host'; document.body.appendChild(host);
         sh = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
         sh.innerHTML = '<style id="s">' + css() + '</style><div class="ov"><div class="pn" role="dialog" aria-modal="true">' +
-            '<div class="topo"><h1>' + esc(V('titulo_topo', 'Provador virtual')) + '</h1>' + (String(V('logo', '')).trim() ? '<img src="' + esc(V('logo', '')) + '" alt="">' : '') + '</div><div class="passos"></div>' +
+            (function () { var v = L.visual || {}, t = String(v.titulo_topo || '').trim(), lg = String(v.logo || '').trim();   // topo só se tiver título ou logo
+                return t || lg ? '<div class="topo">' + (t ? '<h1>' + esc(t) + '</h1>' : '') + (lg ? '<img src="' + esc(lg) + '" alt="">' : '') + '</div>' : ''; })() + '<div class="passos"></div>' +
             '<div class="hd"><h2></h2><p></p><button class="x" aria-label="Fechar">' + IC.fechar + '</button></div><div class="bd"></div><div class="ft"></div>' +
             '<a class="pw" href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=' + encodeURIComponent(LOJA) + '" target="_blank" rel="noopener"><span>Powered by</span><b>provou<em>levou</em></b></a></div></div>';
         ui.ov = sh.querySelector('.ov'); ui.h = sh.querySelector('.hd h2'); ui.s = sh.querySelector('.hd p'); ui.b = sh.querySelector('.bd'); ui.f = sh.querySelector('.ft');
@@ -305,12 +306,36 @@
         monta(); zera();
         ui.ov.classList.add('on'); document.documentElement.style.overflow = 'hidden';
         track('abriu', { origem: 'botao_produto' });
-        mostra(primeira(0));
+        telaZap();
     }
     function fecha() { if (!ui.ov) return; ui.ov.classList.remove('on'); document.documentElement.style.overflow = ''; if (!/carrinho/.test(st.ultimo)) track('saiu', { ultimo_step: st.ultimo }); }
     function primeira(i) { var es = etapas(); while (i < es.length && !vale(es[i])) i++; return i; }
     function cab(t, s) { ui.h.innerHTML = rico(t); ui.s.innerHTML = rico(s || ''); ui.s.style.display = String(s || '').trim() ? '' : 'none'; }
     var voltarHtml = function (acao) { return '<button class="back" data-a="' + (acao || 'voltar') + '">' + IC.voltar + ' Voltar</button>'; };
+
+    /* ---------- WhatsApp no começo (19/10/2026): como nas outras lojas. O telefone segue em todos os passos
+       (lentes_funnel), e é por ele que o lead entra no CRM (rodízio) e nas automações da loja. ---------- */
+    function foneSalvo() { try { return String(localStorage.getItem('pl_last_phone') || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, ''); } catch (e) { return ''; } }
+    function telaZap() {
+        st.zapTela = true;
+        cab(T('zap_titulo', 'Qual é o seu WhatsApp?'), T('zap_sub', 'Salvamos a sua escolha de lentes e te ajudamos caso precise.'));
+        passos(0, 1 + restante(primeira(0)) + 1);
+        var f = foneSalvo();
+        ui.b.innerHTML = '<div class="fld"><label>WhatsApp com DDD *</label><input type="tel" data-rx="zap" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" maxlength="15" value="' + esc(f ? mascara(f) : '') + '"></div>' +
+            '<div class="err" data-erro hidden></div><button type="button" class="btn" data-a="zapok">Continuar</button>';
+        ui.b.scrollTop = 0;
+        avisaPrevia('telefone');
+        var inp = ui.b.querySelector('input'); if (inp && !PREVIEW) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 350);
+        if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); zapOk(); } });
+    }
+    function zapOk() {
+        var v = String((ui.b.querySelector('[data-rx="zap"]') || {}).value || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+        if (!/^[1-9]{2}9?\d{8}$/.test(v) || /^(\d)\1+$/.test(v.slice(2))) return erro('Informe um celular válido com DDD.');
+        st.rx.zap = mascara(v);
+        try { localStorage.setItem('pl_last_phone', v); } catch (e) {}
+        track('telefone', { origem: 'fluxo_lentes' });
+        mostra(primeira(0));
+    }
 
     /* ---------- telas ---------- */
     function mostra(i) {
@@ -320,10 +345,11 @@
         if (e.tipo === 'receita' && !st.rx.passo) st.rx.passo = 'decisao';
         track('etapa', { etapa: e.nome || e.titulo, etapa_id: e.id });
         cab(e.titulo, e.subtitulo);
-        passos(st.hist.length, st.hist.length + restante(i) + 1);
+        passos(st.hist.length + 1, st.hist.length + 1 + restante(i) + 1);
         var h = '';
         var subRx = e.tipo === 'receita' && st.rx.passo !== 'decisao';
         if (st.hist.length || subRx) h += voltarHtml(subRx ? 'rxvolta' : 'voltar');
+        else if (st.zapTela) h += voltarHtml('zapvolta');
         if (e.tipo === 'receita') h += telaReceita(e);
         else {
             h += '<div class="ops">';
@@ -454,7 +480,7 @@
     }
 
     function busca() {
-        passos(99, st.hist.length + 1);
+        passos(99, st.hist.length + 2);
         cab('Analisando sua receita…', 'Buscando a melhor lente para você.');
         ui.b.innerHTML = '<div class="spin"></div><p style="text-align:center;color:#64748b;font-weight:600">Cruzando suas escolhas com o nosso catálogo…</p>';
         if (st.rx.metodo === 'upload') receitaLida();
@@ -505,6 +531,8 @@
         if (a === 'zaplink') { if (PREVIEW) ev.preventDefault(); track('whatsapp', { de: st.ultimo }); return; }
         ev.preventDefault();
         if (a === 'voltar') return volta();
+        if (a === 'zapvolta') return telaZap();
+        if (a === 'zapok') return zapOk();
         if (a === 'rxvolta') { st.rx.passo = 'decisao'; return mostra(st.idx); }
         if (a === 'op') { var o = (e.opcoes || []).filter(function (x) { return String(x.id) === t.getAttribute('data-op'); })[0]; if (o) avanca(e, o); return; }
         if (a === 'rxtabela') { st.rx.passo = 'tabela'; st.rx.metodo = 'manual'; return mostra(st.idx); }
