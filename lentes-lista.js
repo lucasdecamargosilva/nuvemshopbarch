@@ -244,6 +244,7 @@
             '.ft{border-top:1px solid ' + linha + '}' +
             '.pw{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;background:' + sup + ';border-top:1px solid ' + linha + ';text-decoration:none;color:#999;font-size:10px;letter-spacing:1.5px}' +
             '.pw img{height:20px;width:auto;opacity:.75}' +
+            '.selo{color:#fff!important;-webkit-text-fill-color:#fff;font-weight:800;letter-spacing:.06em}' +
             '.zfl{bottom:96px}' +
             /* mais arredondado (pedido do Lucas, 19/10) */
             '.pn{border-radius:26px;overflow:hidden}.topo img{border-radius:12px}' +
