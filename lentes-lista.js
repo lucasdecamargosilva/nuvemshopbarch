@@ -523,53 +523,34 @@
         }
     });
 
-    /* ---------- botões na página do produto (19/10/2026, layout aprovado pelo Lucas) ----------
-       Em cima, largura toda: ESCOLHER LENTES E COMPRAR (escuro, ícone de óculos), no lugar do Comprar.
-       Embaixo, lado a lado e só com contorno: o Comprar da loja vira COMPRAR SÓ ARMAÇÃO + PROVADOR VIRTUAL. */
-    var botao, acoes, linha;
-    var OCULOS = '<svg viewBox="0 0 256 256" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M200 40a8 8 0 0 0 0 16 16 16 0 0 1 16 16v58.08A44 44 0 0 0 145.68 152h-35.36A44 44 0 0 0 40 130.08V72a16 16 0 0 1 16-16 8 8 0 0 0 0-16 32 32 0 0 0-32 32v104a44 44 0 0 0 87.81 4h32.38A44 44 0 0 0 232 176V72a32 32 0 0 0-32-32ZM68 204a28 28 0 1 1 28-28 28 28 0 0 1-28 28Zm120 0a28 28 0 1 1 28-28 28 28 0 0 1-28 28Z"/></svg>';
+    /* ---------- botão na página do produto (19/10/2026) ----------
+       Entra no lugar do botão do Lente Ideal (div.lip-btn-wrapper dentro de .product-actions). Assim o layout de botões
+       que já existe no widget-barch.js (18/10, pedido da Mari) monta sozinho: ESCOLHER LENTES E COMPRAR na largura toda,
+       COMPRAR SÓ ARMAÇÃO + PROVADOR VIRTUAL lado a lado com contorno. Se o Lente Ideal voltar, o botão dele fica escondido. */
+    var botao;
+    var OCULOS = '<svg viewBox="0 0 256 256" width="22" height="22" aria-hidden="true" style="flex:none"><path fill="currentColor" d="M200 40a8 8 0 0 0 0 16 16 16 0 0 1 16 16v58.08A44 44 0 0 0 145.68 152h-35.36A44 44 0 0 0 40 130.08V72a16 16 0 0 1 16-16 8 8 0 0 0 0-16 32 32 0 0 0-32 32v104a44 44 0 0 0 87.81 4h32.38A44 44 0 0 0 232 176V72a32 32 0 0 0-32-32ZM68 204a28 28 0 1 1 28-28 28 28 0 0 1-28 28Zm120 0a28 28 0 1 1 28-28 28 28 0 0 1-28 28Z"/></svg>';
     function atualizaBotao() { if (botao) botao.innerHTML = OCULOS + '<span>' + esc(T('botao_abrir', 'ESCOLHER LENTES E COMPRAR')) + '</span>'; }
     function estilo() {
-        var p = V('cor_primaria', '#303030'), m = V('cor_secundaria', '#8b654f'), st = document.getElementById('pll-acoes-css');
+        var p = V('cor_primaria', '#303030'), st = document.getElementById('pll-acoes-css');
         if (!st) { st = document.createElement('style'); st.id = 'pll-acoes-css'; document.head.appendChild(st); }
-        st.textContent = '.pll-acoes{display:grid;gap:12px;width:100%;margin:' + V('espaco_acima', '16px') + ' 0 ' + V('espaco_abaixo', '20px') + ';box-sizing:border-box}' +
-            '.pll-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:62px;margin:0;padding:10px 16px;border:0;border-radius:14px;background:' + p + ';color:' + V('cor_texto_botao', '#ffffff') + ';font-family:inherit;font-weight:800;font-size:15px;line-height:1.2;letter-spacing:.07em;text-transform:uppercase;box-shadow:0 8px 18px rgba(0,0,0,.18);cursor:pointer;transition:transform .12s,filter .15s}' +
+        st.textContent = '.lip-btn-wrapper:not(.pll-wrap),.btn-lente-ideal-injetado,.plb-lens-btn{display:none!important}' +
+            '.pll-wrap{width:100%}' +
+            '.pll-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:64px;margin:0;padding:0 16px;border:0;border-radius:10px;background:' + p + ';color:' + V('cor_texto_botao', '#ffffff') + ';font-family:inherit;font-weight:800;font-size:15px;line-height:1.2;letter-spacing:2px;text-transform:uppercase;box-shadow:0 8px 18px rgba(0,0,0,.18);cursor:pointer;transition:transform .12s,filter .15s}' +
             '.pll-btn:hover{filter:brightness(1.12)}.pll-btn:active{transform:scale(.99)}' +
-            '.pll-linha{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:12px}' +
-            '.pll-acoes .pll-sec{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:62px!important;height:auto!important;margin:0!important;padding:8px 12px!important;background:#fff!important;background-image:none!important;color:' + m + '!important;border:2px solid ' + m + '!important;border-radius:14px!important;font-family:inherit!important;font-weight:800!important;font-size:14px!important;line-height:1.25!important;letter-spacing:.06em!important;text-transform:uppercase!important;text-align:center!important;white-space:normal!important;box-shadow:none!important;cursor:pointer!important;opacity:1!important}' +
-            '.pll-acoes .pll-sec:hover{background:' + m + '!important;color:#fff!important}.pll-acoes .pll-sec svg,.pll-acoes .pll-sec i,.pll-acoes .pll-sec img{display:none!important}' +
-            '.pll-layout{display:block!important}.pll-layout>.form-quantity-container,.pll-layout>.buy-button-container:empty,.pll-layout .lip-btn-wrapper,.pll-layout .btn-lente-ideal-injetado,.plb-lens-btn{display:none!important}' +
-            '@media(max-width:360px){.pll-btn{font-size:13px}.pll-acoes .pll-sec{font-size:12.5px!important}}';
-    }
-    function rotulaComprar(buy) {   // só troca quando a loja mostra "Comprar" (variante sem estoque continua com o aviso da loja)
-        var txt = buy.tagName === 'INPUT' ? buy.value : buy.textContent;
-        if (!/compr|adicionar|carrinho/i.test(txt || '') || /s[oó] arma/i.test(txt)) return;
-        if (buy.tagName === 'INPUT') buy.value = 'COMPRAR SÓ ARMAÇÃO'; else buy.textContent = 'COMPRAR SÓ ARMAÇÃO';
-    }
-    function pegaProvador() {
-        var pv = document.querySelector('.q-btn-inline-provador');
-        if (!pv || !linha || pv.parentNode === linha) return !!pv;
-        pv.classList.add('pll-sec'); linha.appendChild(pv); return true;
+            '@media(max-width:480px){.pll-btn{font-size:13px;letter-spacing:1px}}';
     }
     function insere() {
-        var f = formProduto(), buy = f && f.querySelector('.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');
+        var f = formProduto(), buy = f && f.querySelector('.js-addtocart.js-prod-submit-form,input.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');
         if (!buy) return false;
         if (document.querySelector('.pll-btn')) return true;
         estilo();
-        acoes = document.createElement('div'); acoes.className = 'pll-acoes';
+        var acts = buy.closest('.product-actions') || buy.parentNode;
+        var w = document.createElement('div'); w.className = 'lip-btn-wrapper pll-wrap';
         botao = document.createElement('button'); botao.type = 'button'; botao.className = 'pll-btn';
         atualizaBotao();
         botao.addEventListener('click', function (e) { e.preventDefault(); abre(); });
-        linha = document.createElement('div'); linha.className = 'pll-linha';
-        acoes.appendChild(botao); acoes.appendChild(linha);
-        // o bloco entra logo depois da linha do Comprar (continua dentro do form, então o Comprar segue funcionando)
-        var ref = buy.parentNode !== f && f.contains(buy.parentNode) ? buy.parentNode : buy;
-        ref.parentNode.insertBefore(acoes, ref.nextSibling);
-        buy.classList.add('pll-sec'); linha.appendChild(buy);
-        if (acoes.parentNode && acoes.parentNode !== f) acoes.parentNode.classList.add('pll-layout');   // bloco de compra do tema: sem quantidade, botões na largura toda (como o layout antigo da Barch)
-        rotulaComprar(buy);
-        try { new MutationObserver(function () { rotulaComprar(buy); }).observe(buy, { attributes: true, attributeFilter: ['value'], childList: true, characterData: true, subtree: true }); } catch (e) {}
-        if (!pegaProvador()) { var k = 0, iv2 = setInterval(function () { if (pegaProvador() || ++k > 60) clearInterval(iv2); }, 250); }
+        w.appendChild(botao);
+        acts.insertBefore(w, acts.firstChild);
         return true;
     }
     if (!insere()) { var n = 0, iv = setInterval(function () { if (insere() || ++n > 40) clearInterval(iv); }, 300); }
