@@ -42,6 +42,12 @@
         try { if (window.LS && LS.product && LS.product.name) return String(LS.product.name); } catch (e) {}
         return String((document.querySelector('h1.product-name,h1.product__title,h1') || {}).textContent || document.title).trim();
     }
+    function fotoArmacao() {
+        var m = document.querySelector('meta[property="og:image"]'); var u = m && m.content || '';
+        if (!u) { try { var v = LS.variants && LS.variants[0]; u = v && (v.image_url || '') || ''; } catch (e) {} }
+        if (u && u.indexOf('//') === 0) u = 'https:' + u;
+        return u;
+    }
     function produtoId() { try { return String(LS.product.id || ''); } catch (e) { return ''; } }
     var T = function (k, d) { var t = L.textos || {}; return String(t[k] || '').trim() ? t[k] : d; };
     var V = function (k, d) { var t = L.visual || {}; return String(t[k] || '').trim() ? t[k] : d; };
@@ -145,6 +151,7 @@
     var IC = {
         voltar: '<svg viewBox="0 0 256 256" width="16" height="16"><path fill="currentColor" d="M224 128a8 8 0 0 1-8 8H59.3l58.4 58.3a8 8 0 0 1-11.4 11.4l-72-72a8 8 0 0 1 0-11.4l72-72a8 8 0 0 1 11.4 11.4L59.3 120H216a8 8 0 0 1 8 8Z"/></svg>',
         relogio: '<svg viewBox="0 0 256 256" width="13" height="13"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.2 104.2 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88 88.1 88.1 0 0 1-88 88Zm64-88a8 8 0 0 1-8 8h-56a8 8 0 0 1-8-8V72a8 8 0 0 1 16 0v48h48a8 8 0 0 1 8 8Z"/></svg>',
+        oculos: '<svg viewBox="0 0 256 256" width="22" height="22"><path fill="currentColor" d="M200 40a8 8 0 0 0 0 16 16 16 0 0 1 16 16v58.1A44 44 0 0 0 145.7 152h-35.4A44 44 0 0 0 40 130.1V72a16 16 0 0 1 16-16 8 8 0 0 0 0-16 32 32 0 0 0-32 32v104a44 44 0 0 0 87.8 4h32.4A44 44 0 0 0 232 176V72a32 32 0 0 0-32-32ZM68 204a28 28 0 1 1 28-28 28 28 0 0 1-28 28Zm120 0a28 28 0 1 1 28-28 28 28 0 0 1-28 28Z"/></svg>',
         fechar: '<svg viewBox="0 0 256 256" width="20" height="20"><path fill="currentColor" d="M205.7 194.3a8 8 0 0 1-11.4 11.4L128 139.3l-66.3 66.4a8 8 0 0 1-11.4-11.4l66.4-66.3-66.4-66.3a8 8 0 0 1 11.4-11.4l66.3 66.4 66.3-66.4a8 8 0 0 1 11.4 11.4L139.3 128Z"/></svg>',
         teclado: '<svg viewBox="0 0 256 256" width="30" height="30"><path fill="currentColor" d="M224 48H32a16 16 0 0 0-16 16v128a16 16 0 0 0 16 16h192a16 16 0 0 0 16-16V64a16 16 0 0 0-16-16Zm0 144H32V64h192Zm-16-64a8 8 0 0 1-8 8H56a8 8 0 0 1 0-16h144a8 8 0 0 1 8 8Zm0-32a8 8 0 0 1-8 8H56a8 8 0 0 1 0-16h144a8 8 0 0 1 8 8ZM72 160a8 8 0 0 1-8 8h-8a8 8 0 0 1 0-16h8a8 8 0 0 1 8 8Zm96 0a8 8 0 0 1-8 8H96a8 8 0 0 1 0-16h64a8 8 0 0 1 8 8Zm40 0a8 8 0 0 1-8 8h-8a8 8 0 0 1 0-16h8a8 8 0 0 1 8 8Z"/></svg>',
         camera: '<svg viewBox="0 0 256 256" width="30" height="30"><path fill="currentColor" d="M208 56h-27.7l-13.6-20.4A8 8 0 0 0 160 32H96a8 8 0 0 0-6.7 3.6L75.7 56H48a24 24 0 0 0-24 24v112a24 24 0 0 0 24 24h160a24 24 0 0 0 24-24V80a24 24 0 0 0-24-24Zm8 136a8 8 0 0 1-8 8H48a8 8 0 0 1-8-8V80a8 8 0 0 1 8-8h32a8 8 0 0 0 6.7-3.6L100.3 48h55.4l13.6 20.4A8 8 0 0 0 176 72h32a8 8 0 0 1 8 8Zm-88-112a44 44 0 1 0 44 44 44.1 44.1 0 0 0-44-44Zm0 72a28 28 0 1 1 28-28 28 28 0 0 1-28 28Z"/></svg>',
@@ -218,7 +225,7 @@
             '.spin{width:44px;height:44px;border-radius:50%;border:4px solid #e2e8f0;border-top-color:' + p + ';animation:g 1s linear infinite;margin:40px auto 14px}@keyframes g{to{transform:rotate(360deg)}}' +
             '.zfl{position:absolute;right:16px;bottom:64px;width:46px;height:46px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.2);text-decoration:none}' +
             '@media(max-width:520px){.hd{padding:18px 18px 12px}.hd h2{font-size:20px}.bd{padding:14px 16px 18px}.op .nm{font-size:15px}}' +
-            '.topo,.passos,.pw{display:none}' + (MODAL() ? cssModal() : '');
+            '.topo,.passos,.pw,.ctx{display:none}' + (MODAL() ? cssModal() : '');
     }
     /* Formato "modal" (19/10/2026): o mesmo visual do Provador Virtual da loja (modal central, "Provador virtual" + logo,
        barra de progresso, Powered by). Só muda a apresentação; perguntas, rotas e lentes são as mesmas. */
@@ -234,7 +241,12 @@
             '.ov.on .pn{transform:none;opacity:1}' +
             '.topo{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 28px 20px;border-bottom:1px solid ' + linha + ';text-align:center}' +
             '.topo h1{margin:0;font-size:19px;font-weight:400;letter-spacing:.3px;line-height:1;color:' + tinta + '}.topo img{height:54px;width:auto;max-width:70%;object-fit:contain}' +
-            '.passos{display:flex;gap:6px;padding:22px 52px 0 28px}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
+            '.ctx{display:flex;align-items:center;gap:11px;margin:16px 52px 0 20px;padding:8px 12px 8px 8px;background:' + sup + ';border:1px solid ' + linha + ';border-radius:14px}' +
+            '.ctx img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:none;background:#fff}.ctx-ic{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;background:#fff;color:' + tinta + ';flex:none}' +
+            '.ctx span{display:grid;gap:1px;min-width:0}.ctx small{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9a6a4b}.ctx b{font-size:13px;font-weight:600;color:' + tinta + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+            '.mapa{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 18px}.mapa div{display:grid;justify-items:center;gap:5px;text-align:center;font-size:10.5px;font-weight:600;color:#6b5e55;line-height:1.25}' +
+            '.mapa i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;background:' + sup + ';color:' + tinta + ';border:1px solid ' + linha + '}' +
+            '.passos{display:flex;gap:6px;padding:16px 52px 0 20px}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
             '.hd{border-bottom:0;text-align:center;padding:16px 40px 6px}.hd h2{margin:0;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;line-height:1.35;color:' + tinta + '}' +
             '.hd p{color:#8b8079;font-size:13px;margin-top:6px}.hd{position:static}.x{top:12px;right:12px;color:#999;z-index:2}.op .ds,.ln .ds{color:#6b5e55}' +
             '.bd{padding:12px 24px 22px}.back{color:#8b8079}.back:hover{color:' + tinta + '}' +
@@ -287,7 +299,9 @@
         sh = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
         sh.innerHTML = '<style id="s">' + css() + '</style><div class="ov"><div class="pn" role="dialog" aria-modal="true">' +
             (function () { var v = L.visual || {}, t = String(v.titulo_topo || '').trim(), lg = String(v.logo || '').trim();   // topo só se tiver título ou logo
-                return t || lg ? '<div class="topo">' + (t ? '<h1>' + esc(t) + '</h1>' : '') + (lg ? '<img src="' + esc(lg) + '" alt="">' : '') + '</div>' : ''; })() + '<div class="passos"></div>' +
+                return t || lg ? '<div class="topo">' + (t ? '<h1>' + esc(t) + '</h1>' : '') + (lg ? '<img src="' + esc(lg) + '" alt="">' : '') + '</div>' : ''; })() +
+            '<div class="ctx">' + (fotoArmacao() ? '<img src="' + esc(fotoArmacao()) + '" alt="">' : '<span class="ctx-ic">' + IC.oculos + '</span>') + '<span><small>' + esc(T('ctx_rotulo', 'Lentes para a sua armação')) + '</small><b>' + esc(produtoNome()) + '</b></span></div>' +
+            '<div class="passos"></div>' +
             '<div class="hd"><h2></h2><p></p><button class="x" aria-label="Fechar">' + IC.fechar + '</button></div><div class="bd"></div><div class="ft"></div>' +
             '<a class="pw" href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=' + encodeURIComponent(LOJA) + '" target="_blank" rel="noopener"><span>Powered by</span><img src="' + LOGO_PL + '" alt="Provou Levou"></a></div></div>';
         ui.ov = sh.querySelector('.ov'); ui.h = sh.querySelector('.hd h2'); ui.s = sh.querySelector('.hd p'); ui.b = sh.querySelector('.bd'); ui.f = sh.querySelector('.ft');
@@ -326,11 +340,12 @@
     function telaZap() {
         st.zapTela = true;
         if (!st.pediuTel) { st.pediuTel = true; track('pediu_telefone', {}); }
-        cab(T('zap_titulo', 'Qual é o seu WhatsApp?'), T('zap_sub', 'Salvamos a sua escolha de lentes e te ajudamos caso precise.'));
+        cab(T('zap_titulo', 'Vamos montar as lentes do seu óculos'), T('zap_sub', 'São 3 passos rápidos. Para começar, deixe seu WhatsApp: guardamos a sua escolha e te ajudamos se precisar.'));
         passos(0, 1 + restante(primeira(0)) + 1);
         var f = foneSalvo();
-        ui.b.innerHTML = '<div class="fld"><label>WhatsApp com DDD *</label><input type="tel" data-rx="zap" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" maxlength="15" value="' + esc(f ? mascara(f) : '') + '"></div>' +
-            '<div class="err" data-erro hidden></div><button type="button" class="btn" data-a="zapok">Continuar</button>';
+        ui.b.innerHTML = (MODAL() ? '<div class="mapa"><div><i>1</i>Tipo de lente e tratamento</div><div><i>2</i>Sua receita</div><div><i>3</i>Lente indicada e preço</div></div>' : '') +
+            '<div class="fld"><label>Seu WhatsApp com DDD *</label><input type="tel" data-rx="zap" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" maxlength="15" value="' + esc(f ? mascara(f) : '') + '"></div>' +
+            '<div class="err" data-erro hidden></div><button type="button" class="btn" data-a="zapok">Começar a escolher as lentes</button>';
         ui.b.scrollTop = 0;
         avisaPrevia('telefone');
         var inp = ui.b.querySelector('input'); if (inp && !PREVIEW) setTimeout(function () { try { inp.focus(); } catch (e) {} }, 350);
