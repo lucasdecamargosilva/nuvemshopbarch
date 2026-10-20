@@ -6,7 +6,10 @@
     var BASE = (function () { try { var c = document.currentScript; return c && c.src ? c.src.replace(/[^/?#]*([?#].*)?$/, '') : ''; } catch (_) { return ''; } })();
 
     var pagePath = String(location.pathname || '').replace(/\/+$/, '').toLowerCase();
-    if (!PREVIEW && !/^\/produtos\/[^/]+$/.test(pagePath)) return;
+    if (!PREVIEW && !/^\/produtos\/[^/]+$/.test(pagePath)) {   // vitrine (home/categorias): botão "Escolher lentes" nos cartões de armação (20/10/2026)
+        if (!window.__PLL_VITRINE__) { var sv = document.createElement('script'); sv.src = BASE + 'lentes-vitrine.js?v=' + Math.floor(Date.now() / 300000); (document.body || document.head).appendChild(sv); }
+        return;
+    }
 
     function normalize(value) {
         return String(value || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
