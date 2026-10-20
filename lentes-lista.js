@@ -217,7 +217,51 @@
             '.ctr{text-align:center;padding:22px 6px}.ctr svg{color:#f59e0b;margin-bottom:8px}.ctr h3{margin:0 0 8px;font-size:19px}.ctr .sb{color:#64748b;margin-bottom:22px}.ctr .sb p{margin:0 0 4px}.ctr .btn{margin-bottom:10px}' +
             '.spin{width:44px;height:44px;border-radius:50%;border:4px solid #e2e8f0;border-top-color:' + p + ';animation:g 1s linear infinite;margin:40px auto 14px}@keyframes g{to{transform:rotate(360deg)}}' +
             '.zfl{position:absolute;right:16px;bottom:64px;width:46px;height:46px;border-radius:50%;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.2);text-decoration:none}' +
-            '@media(max-width:520px){.hd{padding:18px 18px 12px}.hd h2{font-size:20px}.bd{padding:14px 16px 18px}.op .nm{font-size:15px}}';
+            '@media(max-width:520px){.hd{padding:18px 18px 12px}.hd h2{font-size:20px}.bd{padding:14px 16px 18px}.op .nm{font-size:15px}}' +
+            '.topo,.passos,.pw{display:none}' + (MODAL() ? cssModal() : '');
+    }
+    /* Formato "modal" (19/10/2026): o mesmo visual do Provador Virtual da loja (modal central, "Provador virtual" + logo,
+       barra de progresso, Powered by). Só muda a apresentação; perguntas, rotas e lentes são as mesmas. */
+    function MODAL() { return V('layout', 'gaveta') === 'modal'; }
+    var FONTE_LOJA = '';
+    function cssModal() {
+        var tinta = V('cor_tinta', '#3a2e26'), linha = V('cor_linha', '#e3d6cb'), sup = V('cor_superficie', '#f5efe9'), p = V('cor_primaria', tinta);
+        var fonte = FONTE_LOJA || 'system-ui,-apple-system,"Segoe UI",sans-serif';
+        return '.ov{background:rgba(240,238,235,.96);display:flex;align-items:center;justify-content:center;overflow-y:auto}' +
+            '.pn{position:relative;top:auto;right:auto;height:auto;max-height:96vh;width:440px;max-width:92vw;transform:translateY(14px);opacity:0;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .25s;' +
+                'box-shadow:0 32px 80px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.06);font-family:' + fonte + ';color:' + tinta + '}' +
+            '.ov.on .pn{transform:none;opacity:1}' +
+            '.topo{display:flex;flex-direction:column;align-items:center;gap:10px;padding:26px 28px 20px;border-bottom:1px solid ' + linha + ';text-align:center}' +
+            '.topo h1{margin:0;font-size:19px;font-weight:400;letter-spacing:.3px;line-height:1;color:' + tinta + '}.topo img{height:54px;width:auto;max-width:70%;object-fit:contain}' +
+            '.passos{display:flex;gap:6px;padding:16px 28px 0}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
+            '.hd{border-bottom:0;text-align:center;padding:16px 40px 6px}.hd h2{margin:0;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;line-height:1.35;color:' + tinta + '}' +
+            '.hd p{color:#8b8079;font-size:13px;margin-top:6px}.hd{position:static}.x{top:12px;right:12px;color:#999;z-index:2}.op .ds,.ln .ds{color:#6b5e55}' +
+            '.bd{padding:12px 24px 22px}.back{color:#8b8079}.back:hover{color:' + tinta + '}' +
+            '.op,.dc,.ln,.tb{border-color:' + linha + '}.op:hover,.op.on,.dc:hover{border-color:' + tinta + ';box-shadow:none}.op.on{box-shadow:0 0 0 1px ' + tinta + ' inset}' +
+            '.op .nm{color:' + tinta + '}.op .pr,.ln .vl{color:' + tinta + '}.selo{background:' + tinta + '}' +
+            '.btn{background:' + p + ';border-radius:12px}.btn.sec{background:' + sup + ';color:' + tinta + '}select,.fld input{background:' + sup + ';border-color:' + linha + '}' +
+            '.ft{border-top:1px solid ' + linha + '}' +
+            '.pw{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;background:' + sup + ';border-top:1px solid ' + linha + ';text-decoration:none;color:#999;font-size:10px;letter-spacing:1.5px}' +
+            '.pw b{font-size:13px;letter-spacing:0;color:#6d28d9;font-weight:700}.pw b em{font-style:normal;color:#a78bfa;font-weight:500}' +
+            '.zfl{bottom:96px}' +
+            '@media(max-width:767px){.ov{align-items:stretch}.pn{width:100%;max-width:100%;max-height:none;min-height:100%;border-radius:0;transform:translateY(24px)}}';
+    }
+    function passos(feito, total) {
+        var el = sh && sh.querySelector('.passos'); if (!el) return;
+        var h = ''; for (var k = 0; k < total; k++) h += '<i class="' + (k <= feito ? 'on' : '') + '"></i>'; el.innerHTML = h;
+    }
+    function restante(i) {   // quantas telas ainda vêm, seguindo as escolhas feitas (ou a 1ª opção) até a receita / fim
+        var es = etapas(), n = 0, g = 0;
+        while (i < es.length && g++ < 40) {
+            var e = es[i]; if (!vale(e)) { i++; continue; }
+            n++; if (e.tipo === 'receita') break;
+            var ops = (e.opcoes || []).filter(function (x) { return x && x.ativo !== false; }), sel = st.sel[e.id], o = ops[0];
+            if (sel) o = ops.filter(function (x) { return String(x.id) === sel.op; })[0] || o;
+            if (!o) break; var a = o.acao || 'seguir';
+            if (a === 'finalizar' || a === 'so_armacao' || a === 'aviso') break;
+            if (a === 'ir_para') { var k = es.findIndex(function (x) { return String(x.id) === String(o.destino); }); i = k !== -1 ? k : i + 1; } else i++;
+        }
+        return n;
     }
     function monta() {
         if (host) return;
@@ -227,10 +271,13 @@
             lk.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(fonte).replace(/%20/g, '+') + ':wght@400;600;700;800&display=swap';
             document.head.appendChild(lk);
         }
+        try { FONTE_LOJA = getComputedStyle(document.body).fontFamily || ''; } catch (e) {}
         host = document.createElement('div'); host.id = 'pll-host'; document.body.appendChild(host);
         sh = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
         sh.innerHTML = '<style id="s">' + css() + '</style><div class="ov"><div class="pn" role="dialog" aria-modal="true">' +
-            '<div class="hd"><h2></h2><p></p><button class="x" aria-label="Fechar">' + IC.fechar + '</button></div><div class="bd"></div><div class="ft"></div></div></div>';
+            '<div class="topo"><h1>' + esc(V('titulo_topo', 'Provador virtual')) + '</h1>' + (String(V('logo', '')).trim() ? '<img src="' + esc(V('logo', '')) + '" alt="">' : '') + '</div><div class="passos"></div>' +
+            '<div class="hd"><h2></h2><p></p><button class="x" aria-label="Fechar">' + IC.fechar + '</button></div><div class="bd"></div><div class="ft"></div>' +
+            '<a class="pw" href="https://provoulevou.com.br?utm_source=widget&utm_medium=lojista&utm_campaign=' + encodeURIComponent(LOJA) + '" target="_blank" rel="noopener"><span>Powered by</span><b>provou<em>levou</em></b></a></div></div>';
         ui.ov = sh.querySelector('.ov'); ui.h = sh.querySelector('.hd h2'); ui.s = sh.querySelector('.hd p'); ui.b = sh.querySelector('.bd'); ui.f = sh.querySelector('.ft');
         sh.querySelector('.x').addEventListener('click', fecha);
         ui.ov.addEventListener('click', function (e) { if (e.target === ui.ov) fecha(); });
@@ -269,6 +316,7 @@
         if (e.tipo === 'receita' && !st.rx.passo) st.rx.passo = 'decisao';
         track('etapa', { etapa: e.nome || e.titulo, etapa_id: e.id });
         cab(e.titulo, e.subtitulo);
+        passos(st.hist.length, st.hist.length + restante(i) + 1);
         var h = '';
         var subRx = e.tipo === 'receita' && st.rx.passo !== 'decisao';
         if (st.hist.length || subRx) h += voltarHtml(subRx ? 'rxvolta' : 'voltar');
@@ -402,6 +450,7 @@
     }
 
     function busca() {
+        passos(99, st.hist.length + 1);
         cab('Analisando sua receita…', 'Buscando a melhor lente para você.');
         ui.b.innerHTML = '<div class="spin"></div><p style="text-align:center;color:#64748b;font-weight:600">Cruzando suas escolhas com o nosso catálogo…</p>';
         if (st.rx.metodo === 'upload') receitaLida();
@@ -540,7 +589,7 @@
             '@media(max-width:480px){.pll-btn{font-size:13px;letter-spacing:1px}}';
     }
     function insere() {
-        var f = formProduto(), buy = f && f.querySelector('.js-addtocart.js-prod-submit-form,input.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]');
+        var f = formProduto(), buy = f && (f.querySelector('.js-addtocart.js-prod-submit-form,input.js-addtocart,.btn-add-to-cart,[data-component="product.add-to-cart"]') || f.querySelector('.js-addtocart:not(.js-addtocart-placeholder)'));
         if (!buy) return false;
         if (document.querySelector('.pll-btn')) return true;
         estilo();
