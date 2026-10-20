@@ -320,6 +320,7 @@
     function foneSalvo() { try { return String(localStorage.getItem('pl_last_phone') || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, ''); } catch (e) { return ''; } }
     function telaZap() {
         st.zapTela = true;
+        if (!st.pediuTel) { st.pediuTel = true; track('pediu_telefone', {}); }
         cab(T('zap_titulo', 'Qual é o seu WhatsApp?'), T('zap_sub', 'Salvamos a sua escolha de lentes e te ajudamos caso precise.'));
         passos(0, 1 + restante(primeira(0)) + 1);
         var f = foneSalvo();
@@ -375,7 +376,7 @@
         var no = {}; st.hist.concat([st.idx]).forEach(function (i) { var x = etapas()[i]; if (x && st.sel[x.id]) no[x.id] = st.sel[x.id]; });
         st.sel = no;
         st.sel[e.id] = { op: String(o.id), tag: o.tag || '', nome: o.nome, etapa: e.nome || e.titulo, dnp: !!o.dnp };
-        track('opcao', { etapa: e.nome || e.titulo, opcao: o.nome, tag: o.tag || null });
+        crmEscolha(e, o);
         st.hist.push(st.idx);
         var a = o.acao || 'seguir';
         if (a === 'finalizar') { st.rx.metodo = st.rx.metodo || 'ignorado'; return busca(); }
@@ -385,6 +386,23 @@
         if (a === 'ir_para' && o.destino != null) { var k = es.findIndex(function (x) { return String(x.id) === String(o.destino); }); if (k !== -1) prox = k; }
         prox = primeira(prox);
         mostra(prox);
+    }
+    /* Passos com os nomes que o CRM de lentes já entende (os mesmos das outras lojas), 20/10/2026:
+       1ª pergunta = visao; pergunta de tratamento = tratamento; as demais = etapa_extra (aparecem nas respostas do lead). */
+    function crmEscolha(e, o) {
+        var base = { etapa: e.nome || e.titulo, opcao: o.nome, tag: o.tag || null }, txt = norm((e.nome || '') + ' ' + (e.titulo || ''));
+        if (etapas().indexOf(e) === 0) {
+            var t = norm(o.nome + ' ' + (o.tag || ''));
+            base.visao = /descanso|sem grau/.test(t) ? 'descanso' : /multifocal/.test(t) ? 'multifocal' : /monofocal|simples/.test(t) ? 'simples' : o.nome;
+            return track('visao', base);
+        }
+        if (/tratamento/.test(txt)) {
+            var n = norm(o.nome);
+            base.trat = /sem antirreflexo/.test(n) ? 'nenhum' : /filtro|azul/.test(n) ? 'blue' : /^apenas|^antirreflexo$/.test(n) ? 'antirreflexo' : o.nome;
+            return track('tratamento', base);
+        }
+        base.pergunta = e.titulo || e.nome; base.resposta = o.nome;
+        track('etapa_extra', base);
     }
     function volta() {
         if (!st.hist.length) return;
@@ -488,7 +506,7 @@
         if (st.rx.metodo === 'upload') receitaLida();
         setTimeout(function () {
             var ls = indicadas();
-            track('recomendou', { lentes: ls.map(function (l) { return l.nome; }), escolhas: escolhas().map(function (s) { return s.nome; }), receita_modo: st.rx.metodo, grau: st.rx.dados || null });
+            track('recomendou', { lente: ls[0] ? ls[0].nome : null, preco: ls[0] ? Number(ls[0].preco) || 0 : 0, lentes: ls.map(function (l) { return l.nome; }), escolhas: escolhas().map(function (s) { return s.nome; }), receita_modo: st.rx.metodo, grau: st.rx.dados || null });
             if (!ls.length) return semLente();
             cab('Suas lentes ideais', 'Escolha uma das opções compatíveis com sua receita.');
             var h = voltarHtml('voltar') + '<div class="okb">' + IC.ok + '<span>' + rico(T('sucesso', 'Sua configuração foi finalizada. Escolha sua lente para adicionar ao carrinho.')) + '</span></div>';
@@ -530,7 +548,7 @@
     function clique(ev) {
         var t = ev.target.closest('[data-a]'); if (!t) return;
         var a = t.getAttribute('data-a'), es = etapas(), e = es[st.idx];
-        if (a === 'zaplink') { if (PREVIEW) ev.preventDefault(); track('whatsapp', { de: st.ultimo }); return; }
+        if (a === 'zaplink') { if (PREVIEW) ev.preventDefault(); track('sem_receita_whatsapp', { de: st.ultimo }); return; }   // "Pediu ajuda" no CRM
         ev.preventDefault();
         if (a === 'voltar') return volta();
         if (a === 'zapvolta') return telaZap();
@@ -539,7 +557,7 @@
         if (a === 'op') { var o = (e.opcoes || []).filter(function (x) { return String(x.id) === t.getAttribute('data-op'); })[0]; if (o) avanca(e, o); return; }
         if (a === 'rxtabela') { st.rx.passo = 'tabela'; st.rx.metodo = 'manual'; return mostra(st.idx); }
         if (a === 'rxupload') { st.rx.passo = 'upload'; st.rx.metodo = 'upload'; return mostra(st.idx); }
-        if (a === 'rxzap') return fimReceita('whatsapp');
+        if (a === 'rxzap') { track('sem_receita_whatsapp', { de: 'receita' }); return fimReceita('whatsapp'); }
         if (a === 'rxpula') return fimReceita('ignorado');
         if (a === 'rxtabok') {
             var c = cfgRx(e), d = {};
@@ -569,7 +587,7 @@
             addLente(l).then(compraArmacao).catch(function () { t.disabled = false; t.textContent = txt; alert('Não conseguimos adicionar a lente ao carrinho. Tente novamente.'); });
             return;
         }
-        if (a === 'soarm') { track('carrinho_so_armacao', {}); if (PREVIEW) { t.textContent = 'Na loja, a armação vai para o carrinho'; return; } t.disabled = true; compraArmacao(); return; }
+        if (a === 'soarm') { track('so_armacao', { origem: 'fluxo_lentes' }); if (PREVIEW) { t.textContent = 'Na loja, a armação vai para o carrinho'; return; } t.disabled = true; compraArmacao(); return; }
     }
     function muda(ev) {
         var t = ev.target;
