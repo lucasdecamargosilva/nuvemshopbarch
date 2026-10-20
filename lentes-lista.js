@@ -659,7 +659,15 @@
         acts.insertBefore(w, acts.firstChild);
         return true;
     }
-    if (!insere()) { var n = 0, iv = setInterval(function () { if (insere() || ++n > 40) clearInterval(iv); }, 300); }
+    function abreDaVitrine() {   // veio do botão "Escolher lentes" da vitrine (?lentes=1): abre o fluxo e limpa o parâmetro
+        try {
+            var q = new URLSearchParams(location.search); if (q.get('lentes') !== '1') return;
+            q.delete('lentes'); var s = q.toString();
+            history.replaceState(null, '', location.pathname + (s ? '?' + s : '') + location.hash);
+            setTimeout(abre, 400);
+        } catch (e) {}
+    }
+    if (insere()) abreDaVitrine(); else { var n = 0, iv = setInterval(function () { if (insere()) { clearInterval(iv); abreDaVitrine(); } else if (++n > 40) clearInterval(iv); }, 300); }
     window.__PLL_ABRE = abre;
     if (PREVIEW && window.parent !== window) try { window.parent.postMessage({ type: 'pl-lentes-live-ok' }, '*'); } catch (e) {}   // painel manda as mudanças sem recarregar
 })();
