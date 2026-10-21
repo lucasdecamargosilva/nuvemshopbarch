@@ -1,3 +1,24 @@
+/* PL tracing (21/10/2026): avisa o painel de gestao (Tracing) quando a prova falha. Nao muda o fluxo do widget. */
+(function(){try{
+if(window.__PL_TRACE__)return;window.__PL_TRACE__=1;
+var SB='https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/pl_evento_widget';
+var AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
+var loja=location.hostname.replace(/^www\./,''),n=0,f0=window.fetch;
+function rep(tipo,msg,det){try{if(!f0||n++>=15)return;f0.call(window,SB,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:AK,Authorization:'Bearer '+AK},body:JSON.stringify({p_loja:loja,p_tipo:tipo,p_mensagem:String(msg).slice(0,500),p_detalhe:det||null,p_url:location.href.slice(0,300)})})['catch'](function(){});}catch(e){}}
+window.__plTrace=rep;
+if(f0)window.fetch=function(input){var url=String((input&&input.url)||input||'');
+ if(url.indexOf('n8n.segredosdodrop.com/webhook/')<0)return f0.apply(this,arguments);
+ var t0=Date.now(),nome=url.split('/webhook/')[1].split('?')[0],gera=/gerador/.test(nome);
+ return f0.apply(this,arguments).then(function(r){var ms=Date.now()-t0;
+  if(!r.ok)rep('webhook HTTP '+r.status,nome+' respondeu HTTP '+r.status,{webhook:nome,ms:ms,status:r.status});
+  else if(gera){var ct=r.headers.get('content-type')||'';
+   if(/json|text/.test(ct))r.clone().text().then(function(t){if(!/limite_diario|"limited":true/.test(t))rep('gerador sem imagem',nome+': '+t.slice(0,300),{webhook:nome,ms:ms,ct:ct});})['catch'](function(){});
+   if(ms>90000)rep('gerador lento',nome+' levou '+Math.round(ms/1000)+'s',{webhook:nome,ms:ms});}
+  return r;},function(e){rep('falha de rede',nome+': '+((e&&e.message)||e),{webhook:nome,ms:Date.now()-t0});throw e;});};
+window.addEventListener('error',function(ev){var fn=String(ev.filename||'');if(/widget|provador|github\.io|jsdelivr/i.test(fn))rep('erro js',ev.message,{arquivo:fn.slice(0,200),linha:ev.lineno,col:ev.colno});});
+setInterval(function(){var el=document.getElementById('q-step-error');if(!el)return;var vis=el.offsetParent!==null;if(vis&&!el.__plRep){el.__plRep=1;rep('tela de erro','Cliente viu a tela de erro do provador',null);}if(!vis)el.__plRep=0;},2000);
+}catch(e){}})();
+
 (function () {
     function toJpeg(file){return new Promise(function(res){try{var img=new Image();var u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;if(!w||!h){res(file);return;}var sc=Math.min(1,1280/Math.max(w,h));var cw=Math.round(w*sc),ch=Math.round(h*sc);var c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(img,0,0,cw,ch);c.toBlob(function(b){res(b||file);},'image/jpeg',0.92);};img.onerror=function(){URL.revokeObjectURL(u);res(file);};img.src=u;}catch(e){res(file);}});}
 
