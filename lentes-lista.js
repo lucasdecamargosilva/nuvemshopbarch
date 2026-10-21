@@ -487,12 +487,14 @@
         var rd = new FileReader();
         rd.onload = function () {
             var b64 = String(rd.result).split(',')[1], mime = file.type || 'image/jpeg';
-            fetch(WEBHOOK_RECEITA, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: b64, mime: mime, path: LOJA + '/' + sid() + '/' + Date.now() + '.' + ((mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg')) }) })
+            var caminho = LOJA + '/' + sid() + '/' + Date.now() + '.' + ((mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg'));   // onde o leitor salva (bucket receitas)
+            item.caminho = caminho;
+            fetch(WEBHOOK_RECEITA, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image: b64, mime: mime, path: caminho }) })
                 .then(function (r) { return r.json(); }).then(function (r) {
                     item.lendo = false; item.url = r && (r.url || r.path) || null;
                     var dd = r && r.ok && r.dados || null;
                     if (dd) { item.lido = dd; st.rx.lidos.push(dd); }
-                    track('receita_lida', { ok: !!dd, confianca: dd && dd.confianca || null });
+                    track('receita_lida', { ok: !!dd, confianca: dd && dd.confianca || null, arq: caminho, nome: st.rx.nome || null });   // arq = botão "Ver receita" na dash
                     if (st.rx.passo === 'upload') mostra(st.idx);
                 }).catch(function () { item.lendo = false; if (st.rx.passo === 'upload') mostra(st.idx); });
         };
@@ -513,7 +515,7 @@
             var d = st.rx.dados || {};
             if (!(d.od_esf || d.od_cil || d.oe_esf || d.oe_cil)) { st.rx.passo = 'tabela'; mostra(st.idx); setTimeout(function () { erro('Para esta lente, a tabela de graus é obrigatória.'); }, 0); return; }
         }
-        track('receita_metodo', { metodo: metodo, nome: st.rx.nome || null, whatsapp: String(st.rx.zap || '').replace(/\D/g, '') || null, grau: metodo === 'manual' ? st.rx.dados : null, arquivos: st.rx.arquivos.map(function (a) { return a.url || a.nome; }), dnp: pedeDnp() });
+        track('receita_metodo', { metodo: metodo, nome: st.rx.nome || null, whatsapp: String(st.rx.zap || '').replace(/\D/g, '') || null, grau: metodo === 'manual' ? st.rx.dados : null, arquivos: st.rx.arquivos.map(function (a) { return a.caminho || a.url || a.nome; }), nomes_arquivos: st.rx.arquivos.map(function (a) { return a.nome; }), dnp: pedeDnp() });
         st.hist.push(st.idx);
         st.rx.passo = null;
         busca();
