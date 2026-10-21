@@ -1,21 +1,26 @@
-/* PL tracing (21/10/2026): avisa o painel de gestao (Tracing) quando a prova falha. Nao muda o fluxo do widget. */
+/* PL tracing v2 (21/10/2026): avisa o painel de gestao (Tracing) quando a prova falha. Nao muda o fluxo do widget. */
 (function(){try{
 if(window.__PL_TRACE__)return;window.__PL_TRACE__=1;
 var SB='https://quantic-supabase.k5jwra.easypanel.host/rest/v1/rpc/pl_evento_widget';
 var AK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.pCFnSnrlSUM2EwXi9gxAegpoC-9U0Mjx3iAtROR-E20';
-var loja=location.hostname.replace(/^www\./,''),n=0,f0=window.fetch;
+var loja=location.hostname.replace(/^www\./,''),n=0,f0=window.fetch,saindo=0;
+['pagehide','beforeunload'].forEach(function(e){window.addEventListener(e,function(){saindo=1;});});
+/* so estatistica: falha nelas nao afeta o cliente */
+var SO_STAT=/^(pl-provador-open|pl-provador-buy-click|pl-lentes-step)/;
 function rep(tipo,msg,det){try{if(!f0||n++>=15)return;f0.call(window,SB,{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:AK,Authorization:'Bearer '+AK},body:JSON.stringify({p_loja:loja,p_tipo:tipo,p_mensagem:String(msg).slice(0,500),p_detalhe:det||null,p_url:location.href.slice(0,300)})})['catch'](function(){});}catch(e){}}
 window.__plTrace=rep;
 if(f0)window.fetch=function(input){var url=String((input&&input.url)||input||'');
  if(url.indexOf('n8n.segredosdodrop.com/webhook/')<0)return f0.apply(this,arguments);
  var t0=Date.now(),nome=url.split('/webhook/')[1].split('?')[0],gera=/gerador/.test(nome);
  return f0.apply(this,arguments).then(function(r){var ms=Date.now()-t0;
-  if(!r.ok)rep('webhook HTTP '+r.status,nome+' respondeu HTTP '+r.status,{webhook:nome,ms:ms,status:r.status});
+  if(!r.ok&&!SO_STAT.test(nome))rep('webhook HTTP '+r.status,nome+' respondeu HTTP '+r.status,{webhook:nome,ms:ms,status:r.status});
   else if(gera){var ct=r.headers.get('content-type')||'';
    if(/json|text/.test(ct))r.clone().text().then(function(t){if(!/limite_diario|"limited":true/.test(t))rep('gerador sem imagem',nome+': '+t.slice(0,300),{webhook:nome,ms:ms,ct:ct});})['catch'](function(){});
    if(ms>90000)rep('gerador lento',nome+' levou '+Math.round(ms/1000)+'s',{webhook:nome,ms:ms});}
-  return r;},function(e){rep('falha de rede',nome+': '+((e&&e.message)||e),{webhook:nome,ms:Date.now()-t0});throw e;});};
-window.addEventListener('error',function(ev){var fn=String(ev.filename||'');if(/widget|provador|github\.io|jsdelivr/i.test(fn))rep('erro js',ev.message,{arquivo:fn.slice(0,200),linha:ev.lineno,col:ev.colno});});
+  return r;},function(e){var ms=Date.now()-t0,m=(e&&e.message)||e;
+  /* cliente saindo da pagina aborta o fetch: nao e falha nossa */
+  if(!SO_STAT.test(nome)&&!(e&&e.name==='AbortError'))setTimeout(function(){if(!saindo&&!document.hidden)rep('falha de rede',nome+': '+m,{webhook:nome,ms:ms});},1500);throw e;});};
+window.addEventListener('error',function(ev){var fn=String(ev.filename||'');if(/widget|provador|github\.io|jsdelivr/i.test(fn)&&ev.message!=='Script error.')rep('erro js',ev.message,{arquivo:fn.slice(0,200),linha:ev.lineno,col:ev.colno});});
 setInterval(function(){var el=document.getElementById('q-step-error');if(!el)return;var vis=el.offsetParent!==null;if(vis&&!el.__plRep){el.__plRep=1;rep('tela de erro','Cliente viu a tela de erro do provador',null);}if(!vis)el.__plRep=0;},2000);
 }catch(e){}})();
 
