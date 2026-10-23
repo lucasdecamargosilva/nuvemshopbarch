@@ -256,6 +256,12 @@
             '.ft{border-top:1px solid ' + linha + '}' +
             '.pw{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 20px;background:' + sup + ';border-top:1px solid ' + linha + ';text-decoration:none;color:#999;font-size:10px;letter-spacing:1.5px}' +
             '.pw img{height:20px;width:auto;opacity:.75}' +
+            /* selos e Powered by (23/10/2026, Lucas): 3 colunas com ícone em círculo, texto curto embaixo; assinatura mais discreta */
+            '.ft{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;padding:14px 18px 16px;background:#fff;color:' + tinta + '}' +
+            '.ft span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;text-align:center;font-size:11px;font-weight:600;line-height:1.3;letter-spacing:.01em;color:#6b5e55}' +
+            '.ft span svg{width:17px;height:17px;padding:9px;box-sizing:content-box;border-radius:50%;background:' + sup + ';border:1px solid ' + linha + ';color:' + tinta + ';flex:none}' +
+            '.pw{padding:10px 20px 12px;background:#fff;color:#a8a29e;font-size:9px;letter-spacing:2px;text-transform:uppercase;gap:8px}' +
+            '.pw img{height:15px;opacity:.55;transition:opacity .2s}.pw:hover img{opacity:1}' +
             '.selo{color:#fff!important;-webkit-text-fill-color:#fff;font-weight:800;letter-spacing:.06em}' +
             '.zfl{bottom:96px}' +
             /* mais arredondado (pedido do Lucas, 19/10) */
