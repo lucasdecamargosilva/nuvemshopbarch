@@ -263,7 +263,7 @@
             '.pw{padding:10px 20px 12px;background:#fff;color:#a8a29e;font-size:9px;letter-spacing:2px;text-transform:uppercase;gap:8px}' +
             '.pw img{height:15px;opacity:.55;transition:opacity .2s}.pw:hover img{opacity:1}' +
             '.selo{color:#fff!important;-webkit-text-fill-color:#fff;font-weight:800;letter-spacing:.06em}' +
-            '.zfl{bottom:96px}' +
+            '.zfl{bottom:146px}' +
             /* mais arredondado (pedido do Lucas, 19/10) */
             '.pn{border-radius:26px;overflow:hidden}.topo img{border-radius:12px}' +
             '.op,.dc,.ln,.tb,.up{border-radius:20px}.op img{border-radius:14px}.okb,.dnp,.fi{border-radius:16px}' +
