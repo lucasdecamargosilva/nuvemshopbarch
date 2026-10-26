@@ -2583,3 +2583,5 @@ const fd = new FormData();
     }
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watch); else watch();
 })();
+
+;(function(){try{if(window.__plAdLoader)return;window.__plAdLoader=1;var s=document.createElement('script');s.src='https://lucasdecamargosilva.github.io/pl-loja-scripts/pl-antes-depois.js?v=1';s.async=true;(document.head||document.documentElement).appendChild(s);}catch(e){}})(); // PL: slider antes/depois
