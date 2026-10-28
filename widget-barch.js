@@ -1085,7 +1085,7 @@ setInterval(function(){var el=document.getElementById('q-step-error');if(!el)ret
                 for (var i = 0; i < lista.length; i++) {
                     var t = norm(lista[i]);
                     if (!t || /\bclip\b|clipon/.test(t)) continue;
-                    if (/^(lentes?|par de lentes?|kit (de )?lentes?)\b/.test(t) && !/\boculos\b/.test(t)) return true;
+                    if (/^(lentes?|par de lentes?|kit (de )?lentes?|multifoca(l|is)|visao simples)\b/.test(t) && !/\boculos\b/.test(t)) return true;
                     if (/\blentes? (de grau|com grau|oftalmicas?|multifoca(l|is)|transitions|antirreflexo|anti reflexo|de contato|de descanso|de leitura|monofoca(l|is)|visao simples)\b|\bkit (de )?lentes?\b|\bpar de lentes?\b/.test(t)
                         && !/\b(oculos|armacao|solar|sol)\b/.test(t)) return true;
                 }
