@@ -15,6 +15,8 @@
     var CFG = window.__PLL_CFG || {};
     var L = CFG.lista || {};
     var LOJA = window.__PLL_LOJA || 'loja';
+    // Medidor de DNP pela câmera (03/11/2026): só liga se a página ou a config apontar o medidor. Desligado = igual antes.
+    var MEDIDOR = String(window.PL_MEDIDOR_DNP_URL || (L.medidor_dnp_url || '')).trim();
 
     /* ---------- utilidades ---------- */
     function esc(v) { var d = document.createElement('div'); d.textContent = String(v == null ? '' : v); return d.innerHTML; }
@@ -57,7 +59,7 @@
     /* ---------- estado ---------- */
     var st = {};
     function zera() {
-        st = { idx: 0, hist: [], sel: {}, rx: { passo: null, metodo: null, dados: {}, arquivos: [], lidos: [], nome: '', zap: '' }, ultimo: 'abriu' };
+        st = { idx: 0, hist: [], sel: {}, rx: { passo: null, metodo: null, dados: {}, arquivos: [], lidos: [], nome: '', zap: '', dnp: null }, ultimo: 'abriu' };
     }
     zera();
     function etapas() { return (L.etapas || []).filter(function (e) { return e && e.ativo !== false; }); }
@@ -135,6 +137,7 @@
         var d = st.rx.dados || {}, r = [];
         if (st.rx.metodo === 'manual') ['od_esf', 'od_cil', 'od_eixo', 'od_add', 'oe_esf', 'oe_cil', 'oe_eixo', 'oe_add'].forEach(function (k) { if (d[k] !== '' && d[k] != null) r.push(k.toUpperCase().replace('_', ' ') + ' ' + d[k]); });
         if (r.length) p['Receita'] = r.join(' · ');
+        if (st.rx.dnp) p['DNP medida pela câmera'] = 'DP ' + n1(st.rx.dnp.dp) + ' · OD ' + n1(st.rx.dnp.od) + ' · OE ' + n1(st.rx.dnp.oe);
         if (st.rx.metodo) p['Receita enviada'] = { manual: 'Digitada', upload: 'Foto anexada', whatsapp: 'Vai enviar pelo WhatsApp', ignorado: 'Pulou' }[st.rx.metodo] || st.rx.metodo;
         return p;
     }
@@ -215,6 +218,8 @@
             '.fi{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:10px;background:#ecfdf5;color:#065f46;font-weight:600;font-size:13px;margin-bottom:8px}' +
             '.fi button{border:0;background:none;color:#b91c1c;cursor:pointer;display:flex}' +
             '.dnp{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 14px;margin-bottom:14px;color:#b45309;font-size:13px}.dnp b{display:block;color:#92400e;font-size:14px;margin-bottom:4px}.dnp p{margin:0 0 3px}' +
+            '.dnp .mdb{margin:10px 0 8px}.dnp .mdo{font-size:12px;opacity:.85}.dnp.ok{background:#f0fdf4;border-color:#bbf7d0;color:#166534}.dnp.ok b{color:#166534;display:flex;align-items:center;gap:6px}' +
+            '.dnp .mdl{background:none;border:0;padding:4px 0 0;color:#166534;font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}' +
             '.err{color:#dc2626;font-size:13px;font-weight:700;text-align:center;margin:6px 0 10px}' +
             '.okb{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;color:#047857;font-weight:700;margin-bottom:16px;display:flex;gap:8px}' +
             '.ln{border:1.5px solid ' + borda + ';border-radius:14px;padding:14px;margin-bottom:12px}' +
@@ -455,11 +460,21 @@
         }
         return h + '</select>';
     }
+    function n1(x) { return Number(x).toFixed(1).replace('.', ','); }
+    function caixaMedidor() {
+        var m = st.rx.dnp;
+        if (m) return '<div class="dnp ok"><b>' + IC.ok + ' DNP medida pela câmera</b><p>DP ' + n1(m.dp) + ' mm · OD ' + n1(m.od) + ' mm · OE ' + n1(m.oe) + ' mm</p>' +
+            '<button type="button" class="mdl" data-a="dnpmede">Medir de novo</button></div>';
+        return '<div class="dnp"><b>' + rico(T('dnp_titulo', 'Precisamos da sua DNP (distância das pupilas)')) + '</b>' +
+            '<p>Meça agora pela câmera do celular ou do computador, em cerca de 1 minuto. Você vai precisar de um cartão de banco.</p>' +
+            '<button type="button" class="btn mdb" data-a="dnpmede">Medir minha DNP agora</button>' +
+            '<p class="mdo">Ou anexe abaixo uma foto que mostre a DNP, junto com a receita.</p></div>';
+    }
     function telaReceita(e) {
         var c = cfgRx(e), dnp = pedeDnp(), h = '', d = st.rx.dados || {};
         if (st.rx.passo === 'decisao') {
             if (c.manual) h += '<button type="button" class="dc" data-a="rxtabela">' + IC.teclado + '<span><h4>Preencher grau manualmente</h4><p>Selecione os dados da sua receita agora.</p></span></button>';
-            var obg = dnp ? '<span class="obg">Obrigatório: receita + foto da DNP</span>' : (c.uploadObrig ? '<span class="obg">Envio obrigatório</span>' : '');
+            var obg = dnp ? '<span class="obg">' + (MEDIDOR ? 'Obrigatório: receita + DNP (dá pra medir aqui pela câmera)' : 'Obrigatório: receita + foto da DNP') + '</span>' : (c.uploadObrig ? '<span class="obg">Envio obrigatório</span>' : '');
             if (c.upload || dnp || c.uploadObrig) h += '<button type="button" class="dc" data-a="rxupload">' + IC.camera + '<span><h4>Anexar foto da receita</h4><p>Tire uma foto ou envie um arquivo.</p>' + obg + '</span></button>';
             if (c.whatsapp && !dnp && !c.uploadObrig) h += '<button type="button" class="dc zp" data-a="rxzap">' + IC.zap.replace('width="22" height="22"', 'width="30" height="30"') + '<span><h4>Enviar depois por WhatsApp</h4><p>Compre agora, envie a receita depois.</p></span></button>';
             if (c.pular && !dnp && !c.uploadObrig && !c.grauObrig) h += '<button type="button" class="pula" data-a="rxpula">Pular esta etapa</button>';
@@ -474,7 +489,8 @@
             });
             h += '</div><div class="err" data-erro hidden></div><button type="button" class="btn" data-a="rxtabok">Avançar</button>';
         } else if (st.rx.passo === 'upload') {
-            if (dnp) h += '<div class="dnp"><b>' + rico(T('dnp_titulo', 'Precisamos da sua DNP (distância das pupilas)')) + '</b>' + rico(T('dnp_sub', 'Anexe a foto que mostra a DNP junto com a foto da receita.')) + '</div>';
+            if (dnp && MEDIDOR) h += caixaMedidor();
+            else if (dnp) h += '<div class="dnp"><b>' + rico(T('dnp_titulo', 'Precisamos da sua DNP (distância das pupilas)')) + '</b>' + rico(T('dnp_sub', 'Anexe a foto que mostra a DNP junto com a foto da receita.')) + '</div>';
             h += '<div class="fld"><label>Seu nome completo *</label><input type="text" data-rx="nome" autocomplete="name" placeholder="Ex.: João da Silva" value="' + esc(st.rx.nome) + '"></div>' +
                 '<div class="fld"><label>Seu WhatsApp *</label><input type="tel" data-rx="zap" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" value="' + esc(st.rx.zap) + '"></div>';
             if (st.rx.arquivos.length < 3) h += '<input type="file" data-rx="arq" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" multiple hidden><div class="up" data-a="rxarq" role="button" tabindex="0">' + IC.camera + '<b>Anexar arquivo (' + st.rx.arquivos.length + '/3)</b><span>Envie até 3 fotos da sua receita ou documento.</span></div>';
@@ -521,7 +537,7 @@
             var d = st.rx.dados || {};
             if (!(d.od_esf || d.od_cil || d.oe_esf || d.oe_cil)) { st.rx.passo = 'tabela'; mostra(st.idx); setTimeout(function () { erro('Para esta lente, a tabela de graus é obrigatória.'); }, 0); return; }
         }
-        track('receita_metodo', { metodo: metodo, nome: st.rx.nome || null, whatsapp: String(st.rx.zap || '').replace(/\D/g, '') || null, grau: metodo === 'manual' ? st.rx.dados : null, arquivos: st.rx.arquivos.map(function (a) { return a.caminho || a.url || a.nome; }), nomes_arquivos: st.rx.arquivos.map(function (a) { return a.nome; }), dnp: pedeDnp() });
+        track('receita_metodo', { metodo: metodo, nome: st.rx.nome || null, whatsapp: String(st.rx.zap || '').replace(/\D/g, '') || null, grau: metodo === 'manual' ? st.rx.dados : null, arquivos: st.rx.arquivos.map(function (a) { return a.caminho || a.url || a.nome; }), nomes_arquivos: st.rx.arquivos.map(function (a) { return a.nome; }), dnp: pedeDnp(), dnp_medida: st.rx.dnp || null });
         st.hist.push(st.idx);
         st.rx.passo = null;
         busca();
@@ -602,6 +618,12 @@
             if (!st.rx.nome || String(zap).replace(/\D/g, '').length < 10) return erro('Preencha seu nome e WhatsApp antes de anexar a foto.');
             var inp = ui.b.querySelector('[data-rx="arq"]'); if (inp) inp.click(); return;
         }
+        if (a === 'dnpmede') {
+            track('dnp_medidor_abriu', {});
+            var w = window.open(MEDIDOR + (MEDIDOR.indexOf('?') === -1 ? '?' : '&') + 'retorno=1', '_blank');
+            if (!w) erro('Seu navegador bloqueou a nova aba. Libere pop-ups para medir a DNP.');
+            return;
+        }
         if (a === 'rxdel') { st.rx.arquivos.splice(+t.getAttribute('data-i'), 1); return mostra(st.idx); }
         if (a === 'rxupok') {
             if (st.rx.arquivos.some(function (x) { return x.lendo; })) return erro('Aguarde: ainda estamos recebendo o arquivo.');
@@ -634,6 +656,16 @@
         var t = ev.composedPath ? ev.composedPath()[0] : ev.target;
         if (t && t.getAttribute && t.getAttribute('data-rx') === 'zap') { t.value = mascara(t.value); st.rx.zap = t.value; }
     }, true);
+
+    /* ---------- resultado do medidor de DNP (outra aba, via postMessage) ---------- */
+    if (MEDIDOR) window.addEventListener('message', function (ev) {
+        var d = ev.data || {};
+        if (d.type !== 'pl-dnp' || !(Number(d.dp) > 40 && Number(d.dp) < 90)) return;
+        try { if (new URL(MEDIDOR, location.href).origin !== ev.origin) return; } catch (e) { return; }
+        st.rx.dnp = { dp: Number(d.dp), od: Number(d.od), oe: Number(d.oe) };
+        track('dnp_medida', st.rx.dnp);
+        if (ui.ov && st.rx.passo === 'upload') mostra(st.idx);
+    });
 
     /* ---------- prévia do painel ---------- */
     function avisaPrevia(et) { if (PREVIEW && window.parent !== window) try { window.parent.postMessage({ type: 'pl-lentes-etapa', etapa: String(et) }, '*'); } catch (e) {} }
