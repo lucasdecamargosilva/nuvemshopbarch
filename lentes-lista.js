@@ -239,6 +239,8 @@
     var LOGO_PL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOUAAAAoCAMAAAA2Yc1OAAAAYFBMVEUAAAB2Muz18f18DvaRWfFsZ/wAAP8AAAAAAAAAAAB8Oe17Ou3/AP+pVP+0jvTJr/dVVaqHO/t/AH+AO/R/P7+AO/SAO/QAAAB7Oe0AAACDPfp9O/V7Oe17OOwAAAB7OezQS/HyAAAAIHRSTlNg6f8E/gMBry/Sr08BA//+AyMCawTFlQD8+/4Kki6QcnVUoNsAAAaeSURBVHja3ZoJc9sqEIBFEKADOc7RhyyE9P//ZXeX21frmcZvEqbjRIBcPu29SmPSEPZoqiGsMD9jNAlJwoe2gochLKfpn0QpgcZ9DGwuBhtWZwzXTz6RlF9FCWIbf83LspSUcLn8Gn+EOBuvlnyoCTPpwM3xmQeyML6EkhvLrjISJ3NPlKY1+7Ksxv57Sq7vQALmbCX//pTCDHcgUZr2KL875QRfXGMx+ldg7rDpe1NKac9k176+vBzqKWv0/0Ap0BN5nwDxO59AQ1CnmDPZz8laHmfzFi5qG2usGWtRti84Xs+EaZ9OGV2evOX70rz4owiac6tkry8tm+GjskxDz6aBYUy39X2vms4UU41S6K27TdFaXgmjgwu8oaF7ty5NlhsqSkxT9nXdITE5Gu3cmzUyZA32zTkJs3xch2H9wNQF1uxb2sKdc6K2yzOFZS8vDAV6YJcqu51OPX74QSdUaaqhi7x2wpU4cKUzTR/XFSHTpB/4FSWlCGnKMrPRfGoI5yxYzQRiWQZw+yNbaMwrN9yaNSqBJCRneEnpzs0SpMhaFGgxHKUGcBSVIE+nzR9fNQGsP5VrW8GAyMo0xToulZRNTYkukVIx/FyNRAfpz00MyyiBal58pMOQzv9EeSWMgG3WwWQkL+sJ+6YDDc3iQ7heqa6Pa0G04TlEho4gFW6gx3FPlgL9/jKMzo1gT+1OZN45WIl+xIYN1rqdYp19mBJMszLLmnLLBz8FJe2j/qlyTfmDJ71OWu6/SN2h5KBg8IPGSmIklX03ProjTt4AAPjro5QoSXaLMtlaQ4dWaeqUofxak6i6eBllS8p9hxKPPJjJCixxGUCQAPHgOiAAOzsKqzX38f5BWTIfSWqzLCiz3yR5qDjVVGt9EJ7KRleItngMN7wP/JfujWO8tHxHMXLmVRYVdmHCshTeNCdDfYSSUUrQHiBglpwFpan8Zj57eeSwM23vETcrdHhE221KlFyOoXMQFcYzUtidXKYL6XXQ4QcoD16MHpbdp4wkfXnM0t10QbzduTMK4LcpUQf3NOjMxAWn8MzwGFiMjlaSfv8tJSlrm34/QExh55T9LUp1SellGKPEI5RriCEhIOKZJUMZWogpQGTGHD+NNQ9Qevllt8MO2Tz/gvKKLONcj3zdo5RzHa8N4VnUzpEuWMS4pOS3KNl8bovA/BqnrmpsH+wyU9Z22QVV7fzKI3aJRmjLIaJvtVjvci/LUA5OZ3apS1lyO8lM2QbBtW2KJq9RvLd9bJ8pr/hYnxlFcd/3sercLtlFbo5uR4akwWcGAVOQw11zmu8Spa9dAmUqtlpvmGih5HyCqd6Kl1umNJdrwSJ7j189BhXjZZMfWUFJxxSThjFN7r919zkP6CV0NRwGFAw1nKpe8e5CBF1WTdmRTvkgiPVjhKdBlG1W1gNCJci5pZmbuU9XUG55rTtFKeFclOEpi87nSV1WYnW6iJcrtoglF2Zt28F8SlJWB9mcfAdxMUTGkgsKM8wQuDdOaCRPFh8FUYJUF9R9jZTgZ1LUQJ+D4bJloWfAGHKXeSzWE10EzpRkp4rKsPwwwh35uWDR1akA3FeJbZn7eGnQ8FnP0XwSjU8GPnEWvRBleJTjFrfsS9BYzpEX0mCsSSBvhajhR8h9WhYnUJnxHhE1NpcVylSUXVlyqHKuyF7L2qwsUs5yH+q3jVZzt3qxkrktvgh8RzXFqngHBbUjZevCV5Ahv/eUPqTg7VBfstAeCD0C5m0zT+FVUV+qsvCqfEqnqqIsCbhKb/3ou3qiqSsvbhzDwooxLKwGTt01LXBuoOft+45xAyKhZs9Ui4GTGpagsQPMtSN2RLC2ObzCOOCIGfvBixd/xK8O7r5R6EE3L6Bm24ooSEuwlkMKrjflBirTmuoG3N/574my5NQHT0WyjN0SrCwn/zYgbVgGi80CoddwvXsfxelZgCg1byZSfJZGSgqKGbCAz8vI/yUvSWJjAxykWwfGBmx4yLgGnY7YTUwb6GWOX3cfK3RIQKVhX8wJ3ixlBVywu+1YVPvwSujrKfPQvHobd2+Dfvc/j+dtL0N2JpBSXO0WXKm7nkOZG45HK+T7ZItETQpRNq1wgzwWb12hVIPOpcZOZdpHTc0GM6T1fm99jU3nZ8ryX79BkJO89woBXFzUme9MCRoubksTIKU2P4DSaG32+cb7y93ktwdVI/n7vXGHZNCuRd2a6teVUogf89cTE+ZKO3Tk81j38c087W3Xc/5GRF9932P5T4A0vwEkzAGPQIFmHAAAAABJRU5ErkJggg==';   // logo original da Provou Levou (o mesmo do rodapé do provador)
     function cssModal() {
         var tinta = V('cor_tinta', '#3a2e26'), linha = V('cor_linha', '#e3d6cb'), sup = V('cor_superficie', '#f5efe9'), p = V('cor_primaria', tinta);
+        // tons de apoio (marrons do Clássico Barch por padrão; a ótica demo troca pela paleta da Provou)
+        var destaque = V('cor_destaque', '#9a6a4b'), txt2 = V('cor_texto2', '#6b5e55'), txt3 = V('cor_texto3', '#8b8079');
         var fonte = FONTE_LOJA || 'system-ui,-apple-system,"Segoe UI",sans-serif';
         return '.ov{background:rgba(240,238,235,.96);display:flex;align-items:center;justify-content:center;overflow-y:auto}' +
             '.pn{position:relative;top:auto;right:auto;height:auto;max-height:96vh;width:440px;max-width:92vw;transform:translateY(14px);opacity:0;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .25s;' +
@@ -248,13 +250,13 @@
             '.topo h1{margin:0;font-size:19px;font-weight:400;letter-spacing:.3px;line-height:1;color:' + tinta + '}.topo img{height:54px;width:auto;max-width:70%;object-fit:contain}' +
             '.ctx{display:flex;align-items:center;gap:11px;margin:16px 52px 0 20px;padding:8px 12px 8px 8px;background:' + sup + ';border:1px solid ' + linha + ';border-radius:14px}' +
             '.ctx img{width:46px;height:46px;border-radius:10px;object-fit:cover;flex:none;background:#fff}.ctx-ic{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;background:#fff;color:' + tinta + ';flex:none}' +
-            '.ctx span{display:grid;gap:1px;min-width:0}.ctx small{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#9a6a4b}.ctx b{font-size:13px;font-weight:600;color:' + tinta + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
-            '.mapa{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 18px}.mapa div{display:grid;justify-items:center;gap:5px;text-align:center;font-size:10.5px;font-weight:600;color:#6b5e55;line-height:1.25}' +
+            '.ctx span{display:grid;gap:1px;min-width:0}.ctx small{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:' + destaque + '}.ctx b{font-size:13px;font-weight:600;color:' + tinta + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+            '.mapa{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:4px 0 18px}.mapa div{display:grid;justify-items:center;gap:5px;text-align:center;font-size:10.5px;font-weight:600;color:' + txt2 + ';line-height:1.25}' +
             '.mapa i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:12px;background:' + sup + ';color:' + tinta + ';border:1px solid ' + linha + '}' +
             '.passos{display:flex;gap:6px;padding:16px 52px 0 20px}.passos i{flex:1;height:3px;border-radius:3px;background:' + linha + '}.passos i.on{background:' + tinta + '}' +
             '.hd{border-bottom:0;text-align:center;padding:16px 40px 6px}.hd h2{margin:0;font-size:15px;font-weight:600;letter-spacing:2px;text-transform:uppercase;line-height:1.35;color:' + tinta + '}' +
-            '.hd p{color:#8b8079;font-size:13px;margin-top:6px}.hd{position:static}.x{top:12px;right:12px;color:#999;z-index:2}.op .ds,.ln .ds{color:#6b5e55}' +
-            '.bd{padding:12px 24px 22px}.back{color:#8b8079}.back:hover{color:' + tinta + '}' +
+            '.hd p{color:' + txt3 + ';font-size:13px;margin-top:6px}.hd{position:static}.x{top:12px;right:12px;color:#999;z-index:2}.op .ds,.ln .ds{color:' + txt2 + '}' +
+            '.bd{padding:12px 24px 22px}.back{color:' + txt3 + '}.back:hover{color:' + tinta + '}' +
             '.op,.dc,.ln,.tb{border-color:' + linha + '}.op:hover,.op.on,.dc:hover{border-color:' + tinta + ';box-shadow:none}.op.on{box-shadow:0 0 0 1px ' + tinta + ' inset}' +
             '.op .nm{color:' + tinta + '}.op .pr,.ln .vl{color:' + tinta + '}.selo{background:' + tinta + '}' +
             '.btn{background:' + p + ';border-radius:12px}.btn.sec{background:' + sup + ';color:' + tinta + '}select,.fld input{background:' + sup + ';border-color:' + linha + '}' +
@@ -263,7 +265,7 @@
             '.pw img{height:20px;width:auto;opacity:.75}' +
             /* selos e Powered by (23/10/2026, Lucas): 3 colunas com ícone em círculo, texto curto embaixo; assinatura mais discreta */
             '.ft{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px;padding:14px 18px 16px;background:#fff;color:' + tinta + '}' +
-            '.ft span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;text-align:center;font-size:11px;font-weight:600;line-height:1.3;letter-spacing:.01em;color:#6b5e55}' +
+            '.ft span{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:7px;text-align:center;font-size:11px;font-weight:600;line-height:1.3;letter-spacing:.01em;color:' + txt2 + '}' +
             '.ft span svg{width:17px;height:17px;padding:9px;box-sizing:content-box;border-radius:50%;background:' + sup + ';border:1px solid ' + linha + ';color:' + tinta + ';flex:none}' +
             '.pw{padding:10px 20px 12px;background:#fff;color:#a8a29e;font-size:9px;letter-spacing:2px;text-transform:uppercase;gap:8px}' +
             '.pw img{height:15px;opacity:.55;transition:opacity .2s}.pw:hover img{opacity:1}' +
@@ -620,7 +622,10 @@
         }
         if (a === 'dnpmede') {
             track('dnp_medidor_abriu', {});
-            var w = window.open(MEDIDOR + (MEDIDOR.indexOf('?') === -1 ? '?' : '&') + 'retorno=1', '_blank');
+            var urlMed = MEDIDOR + (MEDIDOR.indexOf('?') === -1 ? '?' : '&') + 'retorno=1';
+            // a página pode abrir o medidor por cima dela mesma (window.PL_MEDIDOR_ABRE); senão, nova aba
+            if (typeof window.PL_MEDIDOR_ABRE === 'function') { window.PL_MEDIDOR_ABRE(urlMed); return; }
+            var w = window.open(urlMed, '_blank');
             if (!w) erro('Seu navegador bloqueou a nova aba. Libere pop-ups para medir a DNP.');
             return;
         }
