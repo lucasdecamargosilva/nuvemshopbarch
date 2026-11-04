@@ -340,6 +340,9 @@
         monta(); zera();
         ui.ov.classList.add('on'); document.documentElement.style.overflow = 'hidden';
         track('abriu', { origem: 'botao_produto' });
+        // 03/11/2026 (Lucas): quem já deixou o WhatsApp no provador não vê a captura. Só pula com celular de verdade (DDD + 9 + 8 dígitos, sem número repetido)
+        var d = foneSalvo();
+        if (!PREVIEW && /^[1-9]{2}9\d{8}$/.test(d) && !/^(\d)\1+$/.test(d.slice(3)) && d.slice(2) !== '912345678' && d.slice(2) !== '987654321') { st.rx.zap = mascara(d); st.zapTela = true; track('telefone', { origem: 'provador' }); mostra(primeira(0)); return; }
         telaZap();
     }
     function fecha() { if (!ui.ov) return; ui.ov.classList.remove('on'); document.documentElement.style.overflow = ''; if (!/carrinho/.test(st.ultimo)) track('saiu', { ultimo_step: st.ultimo }); }
