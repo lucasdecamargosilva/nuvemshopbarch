@@ -76,6 +76,9 @@
         return out;
     }
     function pedeDnp() { return escolhas().some(function (s) { return s.dnp; }); }
+    // 11/11/2026 (Lucas, Barch): o medidor pela câmera aparece SÓ no Monofocal e é OPCIONAL.
+    // Lente que exige DNP (multifocal etc.) continua como antes: foto do certificado/DNP junto com a receita.
+    function medidorOpcional() { return !!MEDIDOR && !pedeDnp() && escolhas().some(function (s) { return /monofocal/i.test(String(s.nome || '')); }); }
 
     function track(step, detail) {
         st.ultimo = step;
@@ -310,7 +313,7 @@
         try { FONTE_LOJA = getComputedStyle(document.body).fontFamily || ''; } catch (e) {}
         host = document.createElement('div'); host.id = 'pll-host'; document.body.appendChild(host);
         sh = host.attachShadow ? host.attachShadow({ mode: 'open' }) : host;
-        sh.innerHTML = '<style id="s">' + css() + '</style><div class="ov"><div class="pn" role="dialog" aria-modal="true">' +
+        sh.innerHTML = '<style id="s">' + css() + NOZOOM + '</style><div class="ov"><div class="pn" role="dialog" aria-modal="true">' +
             (function () { var v = L.visual || {}, t = String(v.titulo_topo || '').trim(), lg = String(v.logo || '').trim();   // topo só se tiver título ou logo
                 return t || lg ? '<div class="topo">' + (t ? '<h1>' + esc(t) + '</h1>' : '') + (lg ? '<img src="' + esc(lg) + '" alt="">' : '') + '</div>' : ''; })() +
             '<div class="ctx">' + (fotoArmacao() ? '<img src="' + esc(fotoArmacao()) + '" alt="">' : '<span class="ctx-ic">' + IC.oculos + '</span>') + '<span><small>' + esc(T('ctx_rotulo', 'Lentes para a sua armação')) + '</small><b>' + esc(produtoNome()) + '</b></span></div>' +
@@ -384,7 +387,7 @@
         if (e.tipo === 'receita' && !st.rx.passo) st.rx.passo = 'decisao';
         track('etapa', { etapa: e.nome || e.titulo, etapa_id: e.id });
         cab(e.titulo, e.subtitulo);
-        passos(st.hist.length + 1, st.hist.length + 1 + restante(i) + 1);
+        passos(st.hist.length + 1, st.hist.length + 1 + restante(i) + 1 + (medidorOpcional() ? 1 : 0));
         var h = '';
         var subRx = e.tipo === 'receita' && st.rx.passo !== 'decisao';
         if (st.hist.length || subRx) h += voltarHtml(subRx ? 'rxvolta' : 'voltar');
@@ -404,7 +407,9 @@
             });
             h += '</div>';
         }
-        ui.b.innerHTML = h; ui.b.scrollTop = 0;
+        // 11/11/2026: redesenho da MESMA tela (anexou arquivo, receita lida, DNP medida) mantém a rolagem; tela nova volta ao topo.
+        var _tela = i + '|' + (e.tipo === 'receita' ? st.rx.passo : ''), _y = ui.b.scrollTop;
+        ui.b.innerHTML = h; ui.b.scrollTop = (_tela === st._tela) ? _y : 0; st._tela = _tela;
         avisaPrevia(e.id);
     }
     function avanca(e, o) {
@@ -475,14 +480,41 @@
             '<button type="button" class="btn mdb" data-a="dnpmede">Medir minha DNP agora</button>' +
             '<p class="mdo">Ou anexe abaixo uma foto que mostre a DNP, junto com a receita.</p></div>';
     }
+    // 11/11/2026: caixa da DNP opcional nas cores do próprio fluxo (cartões .dc), não no amarelo de aviso
+    function temaDnp() {
+        var tinta = V('cor_tinta', '#3a2e26');
+        return { tinta: tinta, linha: V('cor_linha', '#e3d6cb'), sup: V('cor_superficie', '#f5efe9'), p: V('cor_primaria', tinta),
+            on: V('cor_texto_botao', '#ffffff'), fundo: V('cor_fundo', '#ffffff'), fonte: V('fonte', 'Onest') };
+    }
+    function caixaDnpEstilo(t) { return 'background:' + t.sup + ';border:1.5px solid ' + t.linha + ';border-radius:20px;padding:16px;margin-bottom:12px;color:' + t.tinta; }
+    // 11/11/2026: celular dava ZOOM ao tocar. iPhone amplia campo com letra < 16px ao focar, e toque duplo rápido amplia a página.
+    // No toque: campos com 16px e sem atraso/zoom de toque duplo nos botões e opções. No computador nada muda.
+    var NOZOOM = '@media (pointer:coarse){input,select,textarea{font-size:16px!important}' +
+        '.tb select{-webkit-appearance:none;appearance:none;text-align:center;text-align-last:center;padding:0 2px!important}.tr{grid-template-columns:34px repeat(var(--n),minmax(0,1fr))!important;gap:5px!important}}' +
+        'button,select,input,label,a,.op,.dc,.up,[data-a],[role=button]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}' +
+        '.ov,.pn,.bd{touch-action:pan-y}';
+    function caixaMedidorOpcional() {
+        if (st.rx.medAberto) return caixaMedidorAberto();
+        var t = temaDnp(), m = st.rx.dnp;
+        if (m) return '<div class="dnp-opc" style="display:flex;align-items:center;gap:10px;border:1px solid ' + t.linha + ';background:' + t.sup + ';border-radius:14px;padding:10px 12px;margin:0 0 12px;color:' + t.tinta + ';font-size:13px;line-height:1.35">' +
+            '<span style="display:flex">' + IC.ok + '</span><span style="flex:1"><b style="font-weight:600">DNP medida</b> · DP ' + n1(m.dp) + ' · OD ' + n1(m.od) + ' · OE ' + n1(m.oe) + ' mm</span>' +
+            '<button type="button" data-a="dnpmede" style="background:none;border:0;padding:0;color:' + t.tinta + ';font:inherit;font-size:12px;text-decoration:underline;opacity:.75;cursor:pointer">Refazer</button></div>';
+        // 11/11/2026 (Lucas): versão SUTIL — uma linha discreta, sem botão grande
+        var olho = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>';
+        return '<button type="button" data-a="dnpmede" class="dnp-opc" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:1px dashed ' + t.linha + ';border-radius:14px;padding:10px 12px;margin:0 0 12px;color:' + t.tinta + ';font:inherit;cursor:pointer">' +
+            '<span style="display:flex;opacity:.75">' + olho + '</span>' +
+            '<span style="flex:1;font-size:13px;line-height:1.35"><b style="font-weight:600">Medir minha DNP pela câmera</b> <span style="opacity:.6">(opcional)</span><br><span style="opacity:.6;font-size:12px">Em 1 minuto, com um cartão de banco</span></span>' +
+            '<span style="opacity:.5;font-size:16px">›</span></button>';
+    }
     function telaReceita(e) {
         var c = cfgRx(e), dnp = pedeDnp(), h = '', d = st.rx.dados || {};
         if (st.rx.passo === 'decisao') {
             if (c.manual) h += '<button type="button" class="dc" data-a="rxtabela">' + IC.teclado + '<span><h4>Preencher grau manualmente</h4><p>Selecione os dados da sua receita agora.</p></span></button>';
-            var obg = dnp ? '<span class="obg">' + (MEDIDOR ? 'Obrigatório: receita + DNP (dá pra medir aqui pela câmera)' : 'Obrigatório: receita + foto da DNP') + '</span>' : (c.uploadObrig ? '<span class="obg">Envio obrigatório</span>' : '');
+            var obg = dnp ? '<span class="obg">' + 'Obrigatório: receita + foto da DNP' + '</span>' : (c.uploadObrig ? '<span class="obg">Envio obrigatório</span>' : '');
             if (c.upload || dnp || c.uploadObrig) h += '<button type="button" class="dc" data-a="rxupload">' + IC.camera + '<span><h4>Anexar foto da receita</h4><p>Tire uma foto ou envie um arquivo.</p>' + obg + '</span></button>';
             if (c.whatsapp && !dnp && !c.uploadObrig) h += '<button type="button" class="dc zp" data-a="rxzap">' + IC.zap.replace('width="22" height="22"', 'width="30" height="30"') + '<span><h4>Enviar depois por WhatsApp</h4><p>Compre agora, envie a receita depois.</p></span></button>';
-            if (c.pular && !dnp && !c.uploadObrig && !c.grauObrig) h += '<button type="button" class="pula" data-a="rxpula">Pular esta etapa</button>';
+            // 11/11/2026 (Lucas): "Pular esta etapa" VISÍVEL, como cartão igual aos outros (antes era um link no fim da tela)
+            if (c.pular && !dnp && !c.uploadObrig && !c.grauObrig) h += '<button type="button" class="dc" data-a="rxpula">' + IC_PULAR + '<span><h4>Pular esta etapa</h4><p>Te chamamos no WhatsApp utilizado na compra.</p></span></button>';
         } else if (st.rx.passo === 'tabela') {
             var cols = [['esf', 'Esf.', 0.25], ['cil', 'Cil.', 0.25], ['eixo', 'Eixo', 1], ['add', 'Add', 0.25]].filter(function (k) { return c[k[0]].on; });
             if (c.grauObrig) h += '<div class="err" style="text-align:left">A tabela de graus é obrigatória.</div>';
@@ -494,8 +526,7 @@
             });
             h += '</div><div class="err" data-erro hidden></div><button type="button" class="btn" data-a="rxtabok">Avançar</button>';
         } else if (st.rx.passo === 'upload') {
-            if (dnp && MEDIDOR) h += caixaMedidor();
-            else if (dnp) h += '<div class="dnp"><b>' + rico(T('dnp_titulo', 'Precisamos da sua DNP (distância das pupilas)')) + '</b>' + rico(T('dnp_sub', 'Anexe a foto que mostra a DNP junto com a foto da receita.')) + '</div>';
+            if (dnp) h += '<div class="dnp"><b>' + rico(T('dnp_titulo', 'Precisamos da sua DNP (distância das pupilas)')) + '</b>' + rico(T('dnp_sub', 'Anexe a foto que mostra a DNP junto com a foto da receita.')) + '</div>';
             h += '<div class="fld"><label>Seu nome completo *</label><input type="text" data-rx="nome" autocomplete="name" placeholder="Ex.: João da Silva" value="' + esc(st.rx.nome) + '"></div>' +
                 '<div class="fld"><label>Seu WhatsApp *</label><input type="tel" data-rx="zap" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" value="' + esc(st.rx.zap) + '"></div>';
             if (st.rx.arquivos.length < 3) h += '<input type="file" data-rx="arq" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" multiple hidden><div class="up" data-a="rxarq" role="button" tabindex="0">' + IC.camera + '<b>Anexar arquivo (' + st.rx.arquivos.length + '/3)</b><span>Envie até 3 fotos da sua receita ou documento.</span></div>';
@@ -508,6 +539,11 @@
     }
     function erro(msg) { var el = ui.b.querySelector('[data-erro]'); if (el) { el.textContent = msg; el.hidden = false; } else if (!PREVIEW) alert(msg); }
     function mascara(v) { v = String(v).replace(/\D/g, '').slice(0, 11); if (v.length > 2) v = '(' + v.slice(0, 2) + ') ' + v.slice(2); if (v.length > 10) v = v.slice(0, 10) + '-' + v.slice(10); return v; }
+    // 11/11/2026: depois de anexar (e quando a leitura termina) a tela fica no anexo, mostrando o arquivo e o "Confirmar imagens".
+    function mostraAnexo() {
+        mostra(st.idx);
+        try { var cf = ui.b.querySelector('[data-a="rxupok"]'); if (cf) { var rb = ui.b.getBoundingClientRect(), rc = cf.getBoundingClientRect(); if (rc.bottom > rb.bottom) ui.b.scrollTop += rc.bottom - rb.bottom + 12; } } catch (e) {}
+    }
     function lerArquivo(file) {
         var item = { nome: file.name || 'arquivo', lendo: true };
         st.rx.arquivos.push(item);
@@ -522,8 +558,8 @@
                     var dd = r && r.ok && r.dados || null;
                     if (dd) { item.lido = dd; st.rx.lidos.push(dd); }
                     track('receita_lida', { ok: !!dd, confianca: dd && dd.confianca || null, arq: caminho, nome: st.rx.nome || null });   // arq = botão "Ver receita" na dash
-                    if (st.rx.passo === 'upload') mostra(st.idx);
-                }).catch(function () { item.lendo = false; if (st.rx.passo === 'upload') mostra(st.idx); });
+                    if (st.rx.passo === 'upload') mostraAnexo();
+                }).catch(function () { item.lendo = false; if (st.rx.passo === 'upload') mostraAnexo(); });
         };
         rd.readAsDataURL(file);
     }
@@ -545,8 +581,32 @@
         track('receita_metodo', { metodo: metodo, nome: st.rx.nome || null, whatsapp: String(st.rx.zap || '').replace(/\D/g, '') || null, grau: metodo === 'manual' ? st.rx.dados : null, arquivos: st.rx.arquivos.map(function (a) { return a.caminho || a.url || a.nome; }), nomes_arquivos: st.rx.arquivos.map(function (a) { return a.nome; }), dnp: pedeDnp(), dnp_medida: st.rx.dnp || null });
         st.hist.push(st.idx);
         st.rx.passo = null;
+        if (medidorOpcional()) return telaDnp();   // 11/11/2026: DNP é uma ETAPA PRÓPRIA depois da receita (só Monofocal, opcional)
         busca();
     }
+
+    /* ---------- etapa DNP (11/11/2026, Barch): opcional, só Monofocal; o medidor fica embutido na própria tela ---------- */
+    var IC_PULAR = '<svg width="30" height="30" style="flex:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5l8 7-8 7z"/><path d="M19 5v14"/></svg>';
+    function telaDnp() {
+        st.dnpTela = true; st._tela = 'dnp';
+        passos(st.hist.length, st.hist.length + 2);
+        cab('Sua DNP', 'Opcional: a distância entre as suas pupilas. Meça agora pela câmera ou pule esta etapa.');
+        var m = st.rx.dnp, h = voltarHtml('dnpvolta');
+        var op = function (acao, nome, desc) { return '<button type="button" class="op" data-a="' + acao + '"><span class="tx" style="display:block"><span class="nm" style="display:block">' + nome + '</span><span class="ds" style="display:block;margin-top:3px">' + desc + '</span></span></button>'; };
+        if (st.rx.medAberto) {   // escolheu medir: medidor embutido na própria etapa
+            h += caixaMedidorAberto(true) + '<button type="button" class="pula" data-a="dnpok">Pular esta etapa</button>';
+        } else if (m) {          // já mediu
+            h += caixaMedidorOpcional() + '<button type="button" class="btn" data-a="dnpok">Continuar</button>';
+        } else {                 // escolha, igual às outras etapas
+            // 11/11/2026: mesmos cartões com ícone da etapa da receita (.dc)
+            var icRegua = '<svg width="30" height="30" style="flex:none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>';
+            h += '<button type="button" class="dc" data-a="dnpmede">' + icRegua + '<span><h4>Medir minha DNP agora <span style="font-weight:500;font-size:12px;opacity:.65;margin-left:2px">(opcional)</span></h4><p>Pela câmera do celular ou do computador, em cerca de 1 minuto, com um cartão de banco.</p></span></button>' +
+                '<button type="button" class="dc" data-a="dnpok">' + IC_PULAR + '<span><h4>Pular esta etapa</h4><p>Seguir para as lentes indicadas.</p></span></button>';
+        }
+        ui.b.innerHTML = h; ui.b.scrollTop = 0;
+        avisaPrevia('dnp');
+    }
+    function redesenha() { if (st.dnpTela) telaDnp(); else mostra(st.idx); }
 
     function busca() {
         passos(99, st.hist.length + 2);
@@ -628,9 +688,12 @@
             var urlMed = MEDIDOR + (MEDIDOR.indexOf('?') === -1 ? '?' : '&') + 'retorno=1';
             // a página pode abrir o medidor por cima dela mesma (window.PL_MEDIDOR_ABRE); senão, nova aba
             if (typeof window.PL_MEDIDOR_ABRE === 'function') { window.PL_MEDIDOR_ABRE(urlMed); return; }
-            var w = window.open(urlMed, '_blank');
-            if (!w) erro('Seu navegador bloqueou a nova aba. Libere pop-ups para medir a DNP.');
+            abreMedidor();   // 11/11/2026: abre embutido na própria etapa da DNP
             return;
+        }
+        if (a === 'dnpvolta') { st.dnpTela = false; st.rx.medAberto = false; st.hist.pop(); st.rx.passo = 'decisao'; return mostra(st.idx); }
+        if (a === 'dnpok') { track('dnp_etapa', { acao: st.rx.dnp ? 'mediu' : 'pulou' }); st.dnpTela = false; st.rx.medAberto = false; return busca(); }
+        if (a === 'dnpfecha') { track('dnp_medidor_fechou', {}); st.rx.medAberto = false; return redesenha();
         }
         if (a === 'rxdel') { st.rx.arquivos.splice(+t.getAttribute('data-i'), 1); return mostra(st.idx); }
         if (a === 'rxupok') {
@@ -656,7 +719,7 @@
                 if (fs[i].size > 5 * 1024 * 1024) return erro('O arquivo "' + fs[i].name + '" passa de 5 MB.');
                 if (!/\.(jpe?g|png|pdf)$/i.test(fs[i].name) && !/^image\//.test(fs[i].type)) return erro('Envie foto (JPG/PNG) ou PDF.');
             }
-            fs.forEach(lerArquivo); mostra(st.idx); return;
+            fs.forEach(lerArquivo); mostraAnexo(); return;
         }
         if (t.getAttribute('data-rx') === 'nome') st.rx.nome = t.value;
     }
@@ -665,14 +728,44 @@
         if (t && t.getAttribute && t.getAttribute('data-rx') === 'zap') { t.value = mascara(t.value); st.rx.zap = t.value; }
     }, true);
 
+    /* ---------- medidor de DNP DENTRO da tela da receita (iframe na própria caixa), o cliente fecha quando quiser ---------- */
+    function abreMedidor() {
+        st.rx.medAberto = true; redesenha();
+        try { var f = ui.b.querySelector('.medbox'); if (f) f.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) {}
+    }
+    function caixaMedidorAberto(semCab) {
+        var t = temaDnp(), h = function (c) { return String(c || '').replace('#', ''); };
+        var txt2 = V('cor_texto2', '#6b5e55');
+        // na etapa própria (semCab): medidor direto na tela, com botões iguais aos cartões de opção do fluxo
+        var fundo = semCab ? t.fundo : t.sup;
+        var url = MEDIDOR + (MEDIDOR.indexOf('?') === -1 ? '?' : '&') + 'retorno=1&embed=1&cor=' + h(t.p) + '&borda=' + h(t.linha) + '&fundo=' + h(fundo) + '&sup=' + h(t.fundo) +
+            '&texto=' + h(t.on) + '&tinta=' + h(t.tinta) + '&txt2=' + h(txt2) + '&raio=' + (semCab ? 20 : 14) + (semCab ? '&cartoes=1' : '') + '&so_auto=1' + '&fonte=' + encodeURIComponent(t.fonte);
+        var iframe = '<iframe src="' + esc(url) + '" title="Medidor de DNP" allow="camera; microphone; autoplay; fullscreen" scrolling="no" style="display:block;width:100%;height:' + (st.rx.medAltura || 170) + 'px;border:0;background:' + fundo + '"></iframe>';
+        if (semCab) return '<div class="medbox">' + iframe + '</div>';
+        return '<div class="dnp-opc medbox" style="background:' + t.sup + ';border:1px solid ' + t.linha + ';border-radius:14px;padding:8px 10px 10px;margin:0 0 12px;color:' + t.tinta + '">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 6px;font-size:13px">' +
+            '<span style="font-weight:600">Medir minha DNP <span style="font-weight:400;opacity:.6">(opcional)</span></span>' +
+            '<button type="button" data-a="dnpfecha" style="background:none;border:0;padding:2px 0;color:' + t.tinta + ';font:inherit;font-size:12px;text-decoration:underline;opacity:.75;cursor:pointer">Fechar</button></div>' + iframe + '</div>';
+    }
+
+
+
+
     /* ---------- resultado do medidor de DNP (outra aba, via postMessage) ---------- */
+    if (MEDIDOR) window.addEventListener('message', function (ev) {   // altura do medidor embutido
+        var d = ev.data || {}; if (d.type !== 'pl-dnp-altura' || !(d.h > 40)) return;
+        try { if (new URL(MEDIDOR, location.href).origin !== ev.origin) return; } catch (e) { return; }
+        st.rx.medAltura = Math.min(Math.round(d.h) + 2, Math.round(window.innerHeight * 0.9));
+        var f = ui.b && ui.b.querySelector('.medbox iframe'); if (f) f.style.height = st.rx.medAltura + 'px';
+    });
     if (MEDIDOR) window.addEventListener('message', function (ev) {
         var d = ev.data || {};
         if (d.type !== 'pl-dnp' || !(Number(d.dp) > 40 && Number(d.dp) < 90)) return;
         try { if (new URL(MEDIDOR, location.href).origin !== ev.origin) return; } catch (e) { return; }
         st.rx.dnp = { dp: Number(d.dp), od: Number(d.od), oe: Number(d.oe) };
         track('dnp_medida', st.rx.dnp);
-        if (ui.ov && st.rx.passo === 'upload') mostra(st.idx);
+        st.rx.medAberto = false;   // mediu: fecha o medidor na própria tela e mostra a medida
+        if (ui.ov && st.dnpTela) telaDnp();
     });
 
     /* ---------- prévia do painel ---------- */
