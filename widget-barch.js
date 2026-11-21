@@ -2193,6 +2193,24 @@ const fd = new FormData();
                         }
                     } catch (_plE) {}
                     // ─────────────────────────────────────────────────────────────────────────────
+                    // ── REFERÊNCIA FIXA POR PRODUTO (21/11, igual à Menina Flor) ──
+                    // referencia.json: slug do produto → recortes do rosto da modelo com a armação
+                    // (lente transparente, sem o clip-on na mão). Produto fora do mapa → regras acima.
+                    try {
+                        const _slugM = location.pathname.match(/\/produtos\/([^/?#]+)/);
+                        if (_slugM) {
+                            const _ref = await Promise.race([
+                                fetch('https://lucasdecamargosilva.github.io/nuvemshopbarch/referencia.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+                                new Promise(function (r) { setTimeout(function () { r({}); }, 3000); })
+                            ]) || {};
+                            const _ru = _ref[_slugM[1]];
+                            if (_ru && _ru.length) {
+                                allProdImgs = _ru.slice(0, 4);
+                                fd.delete('variant_ref_index');
+                                console.log('[PL Barch] referência fixa:', allProdImgs);
+                            }
+                        }
+                    } catch (_) {}
                     let _primaryDone = false, _slot = 1;
                     for (let _pi = 0; _pi < allProdImgs.length; _pi++) {
                         try {
