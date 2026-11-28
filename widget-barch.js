@@ -1557,7 +1557,7 @@ setInterval(function(){var el=document.getElementById('q-step-error');if(!el)ret
             // Lazy-load Phosphor Icons na primeira abertura
             if (!window.phosphorIconsLoaded) {
                 var ph = document.createElement('script');
-                ph.src = 'https://unpkg.com/@phosphor-icons/web';
+                ph.src = 'https://unpkg.com/@phosphor-icons/web@2.1.2';
                 document.head.appendChild(ph);
                 window.phosphorIconsLoaded = true;
             }
