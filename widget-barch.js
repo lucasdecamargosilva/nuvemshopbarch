@@ -1,3 +1,41 @@
+/* PL recupera prova (28/11/2026): se a conexão com o gerador cair (rede móvel, navegador do Instagram/Facebook,
+   tela bloqueada) ou o proxy responder 502/503/504, o gerador termina a prova mesmo assim e guarda a imagem pelo
+   código req_id. Em vez de mostrar ALTA DEMANDA, o widget busca a prova pronta por até 3 min. */
+window.__plFetchProva = async function (url, fd, repete500) {
+  var req = fd.get && fd.get('req_id');
+  if (!req) { req = 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10); try { fd.append('req_id', req); } catch (_) {} }
+  var t0 = Date.now();
+  var tr = function (t, m) { try { window.__plTrace && window.__plTrace(t, m, { ms: Date.now() - t0, rede: (navigator.connection || {}).effectiveType || null }); } catch (_) {} };
+  var busca = async function () {
+    while (Date.now() - t0 < 180000) {
+      await new Promise(function (r) { setTimeout(r, 3000); });
+      try {
+        var r = await fetch('https://n8n.segredosdodrop.com/webhook/pl-prova-resultado', { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ req_id: req, inline: 1 }) });
+        var d = await r.json();
+        if (d && d.pronto && d.data) { var bin = atob(d.data), arr = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i); return new Blob([arr], { type: d.mime || 'image/png' }); }
+      } catch (_) {}
+    }
+    return null;
+  };
+  var comoResposta = function (bl) { return { ok: true, status: 200, headers: { get: function () { return 'image/png'; } }, blob: function () { return Promise.resolve(bl); }, json: function () { return Promise.resolve({}); } }; };
+  var res;
+  try { res = await fetch(url, { method: 'POST', body: fd }); }
+  catch (e) {
+    var u1 = await busca();
+    if (!u1) { tr('motivo da tela de erro', 'gerador: conexao caiu e a prova nao apareceu (' + String((e && e.message) || e) + ')'); throw e; }
+    tr('prova recuperada', 'conexao caiu (' + String((e && e.message) || e) + ') - prova buscada pelo codigo');
+    return comoResposta(u1);
+  }
+  if (repete500 && res.status === 500) { tr('gerador 500 - nova tentativa', 'repetindo a prova 1x'); try { res = await fetch(url, { method: 'POST', body: fd }); } catch (e2) { var u0 = await busca(); if (u0) return comoResposta(u0); throw e2; } }
+  if (res.status === 502 || res.status === 503 || res.status === 504) {
+    var u2 = await busca();
+    if (u2) { tr('prova recuperada', 'HTTP ' + res.status + ' - prova buscada pelo codigo'); return comoResposta(u2); }
+    tr('motivo da tela de erro', 'gerador: HTTP ' + res.status + ' e a prova nao apareceu');
+  } else if (!res.ok && res.status !== 400 && res.status !== 401 && res.status !== 403) {
+    tr('motivo da tela de erro', 'gerador: HTTP ' + res.status);
+  }
+  return res;
+};
 /* PL tracing v2 (21/10/2026): avisa o painel de gestao (Tracing) quando a prova falha. Nao muda o fluxo do widget. */
 (function(){try{
 if(window.__PL_TRACE__)return;window.__PL_TRACE__=1;
@@ -2233,7 +2271,7 @@ const fd = new FormData();
 
                     calculateFinalSize();
 
-                    const res = await fetch(WEBHOOK_PROVA, { method: 'POST', body: fd });
+                    const res = await window.__plFetchProva(WEBHOOK_PROVA, fd, true);
 
                     const contentType = res.headers.get("content-type") || "";
                     if (contentType.includes("application/json")) {
